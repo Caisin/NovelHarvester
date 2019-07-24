@@ -91,11 +91,9 @@ public class NovelSpider {
                 Collections.sort(urls, new SortUrl());
             }
             //预处理完后放入map集合
-            int index = 0;
             for (String s : urls) {
                 String names = title.get(s);
                 chapter.put(s, names);
-                index++;
             }
             //更新题目与小说名字
             novelTitle = getTitle(html);

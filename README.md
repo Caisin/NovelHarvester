@@ -1,7 +1,9 @@
-# Uncle小说 V3.4
+# Uncle小说 V3.44
 一个PC端（win、mac、linux）文本小说下载、阅读；有声小说下载
 
 由javaFX+Mybatis+SqLite+Maven搭建环境编写，fxlauncher实现自动更新
+
+####[安卓版地址](https://github.com/unclezs/NovelDownloader)
 
 ## 更新说明
 [查看更新介绍](https://unclezs.gitee.io/service/%E6%9B%B4%E6%96%B0%E8%AF%B4%E6%98%8E.html "更新说明")

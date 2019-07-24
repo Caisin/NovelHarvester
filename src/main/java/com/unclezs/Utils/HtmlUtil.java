@@ -128,8 +128,10 @@ public class HtmlUtil {
      * @param charset 网页编码
      * @return 网页源码
      */
-    public static String getHtml(String url, String charset,String referer) {
-        String ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36";
+    public static String getSource(String url, String charset,String referer,String ua) {
+        if(ua==null){
+            ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36";
+        }
         String content = null;
         //重试5次
         HttpRequestRetryHandler retry = new StandardHttpRequestRetryHandler(5, true);

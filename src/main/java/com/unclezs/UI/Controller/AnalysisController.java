@@ -116,7 +116,6 @@ public class AnalysisController implements Initializable {
                 }
                 if (startSelected) {
                     int end = list.getSelectionModel().getSelectedIndex();
-                    System.out.println(startIndex + "--" + end);
                     for (int i = startIndex + 1; i <= end; i++) {
                         list.getItems().get(i).setSelected(!list.getItems().get(i).isSelected());
                     }
@@ -353,6 +352,7 @@ public class AnalysisController implements Initializable {
 
     //下载本书
     private void downloadBook() {
+        String r="[第]{0,1}.+?[章]{0,1}";
         if (list.getItems().size() == 0) {
             ToastUtil.toast("请先解析目录！");
             return;
@@ -379,10 +379,19 @@ public class AnalysisController implements Initializable {
                 taskUrlList.add(c);
             }
         }
-        NovelDownloader downloder = new NovelDownloader(taskUrlList, selectedNameItems, config, spider);
-        DownloadController.addTask(downloder);
+        //改变章节
+        for (int i = 0; i < selectedNameItems.size(); i++) {
+            String s = selectedNameItems.get(i);
+            s=s.replaceAll("[0-9]","")
+                    .replaceAll("第.+?章","")
+                    .replaceAll("","");//去掉所有数字
+            String newName="第"+(i+1)+"章 "+s;
+            selectedNameItems.set(i,newName);
+        }
+        NovelDownloader downloader = new NovelDownloader(taskUrlList, selectedNameItems, config, spider);
+        DownloadController.addTask(downloader);
         new Thread(() -> {
-            downloder.start();
+            downloader.start();
         }).start();
         ToastUtil.toast("添加下载任务成功！");
     }

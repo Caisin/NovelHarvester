@@ -133,8 +133,8 @@ public class SearchController implements Initializable {
             Task<List<SearchNode>> task = new Task<List<SearchNode>>() {
                 @Override
                 protected List<SearchNode> call() throws Exception {
-                    String responce = HttpUtil.request("https://unclezs.com:8443/novel/novel/info?name=" + name + "&site=" + sites[index]);
-                    List<NovelInfo> novelInfos = JSON.parseArray(responce, NovelInfo.class);
+                    String response = HttpUtil.request("https://unclezs.com:8443/novel/novel/info?name=" + name + "&site=" + sites[index]);
+                    List<NovelInfo> novelInfos = JSON.parseArray(response, NovelInfo.class);
                     List<SearchNode> nodeList = new ArrayList<>();
                     for (NovelInfo info : novelInfos) {
                         nodeList.add(new SearchNode(info, spider.crawlDescImage(name)));

@@ -33,9 +33,11 @@ public class AudioDownloader implements DownloadAdapter {
     private List<Integer> overNum;//完成数量
     private List<String> taskUrl;
     private ExecutorService service;
+    private boolean isPhone;//是否开启手机模式下载
     private List<Boolean> isShutdown=new ArrayList<>();
-    public AudioDownloader(DownloadConfig config, AudioBook book) {
+    public AudioDownloader(DownloadConfig config, AudioBook book,boolean isPhone) {
         this.config = config;
+        this.isPhone=isPhone;
         this.book = book;
         this.overNum= Collections.synchronizedList(new ArrayList<>(book.getChapters().size()));
         //获取任务列表
@@ -77,6 +79,7 @@ public class AudioDownloader implements DownloadAdapter {
                 @Override
                 public String call() throws Exception {
                     AudioNovelSpider spider=new AudioNovelSpider();
+                    spider.setPhone(isPhone);
                     for (int j = sIndex; j < eIndex; j++) {
                         if(!isShutdown.get(taskId)){
                             return null;//监听中途停止
@@ -93,7 +96,11 @@ public class AudioDownloader implements DownloadAdapter {
                             HttpURLConnection connection = (HttpURLConnection)url.openConnection();
                             connection.setConnectTimeout(10000);
                             connection.setReadTimeout(10000);
-                            connection.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
+                            if(isPhone){
+                                connection.setRequestProperty("User-Agent","Mozilla/5.0 (Linux; U; Android 9; zh-CN; MI MAX 3 Build/PKQ1.190118.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.108 UCBrowser/12.5.0.1030 Mobile Safari/537.36");
+                            }else {
+                                connection.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
+                            }
                             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(path));
                             BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
                             byte[] buffer = new byte[1024*1024];

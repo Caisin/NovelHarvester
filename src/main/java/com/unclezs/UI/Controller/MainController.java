@@ -89,7 +89,6 @@ public class MainController implements Initializable {
         });
         //脱离书荒
         findBook.setOnMouseClicked(e -> {
-
             if (findBookPane == null) {
                 try {
                     findBookPane = new FXMLLoader(getClass().getResource("/fxml/search.fxml")).load();
@@ -122,7 +121,7 @@ public class MainController implements Initializable {
             setContent(searchAudioPane);
         });
         audioSelf.setOnMouseClicked(event -> {
-            if(audioBookSelfPane==null){
+            if (audioBookSelfPane == null) {
                 try {
                     audioBookSelfPane = FXMLLoader.load(getClass().getResource("/fxml/audioBookSelf.fxml"));
                 } catch (IOException ex) {
