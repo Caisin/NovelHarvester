@@ -11,21 +11,32 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.io.IOException;
 
 
 public class Reader extends Application{
+    public StageStyle stageStyle=StageStyle.DECORATED;
+
+    public Reader() {
+    }
+
+    public Reader(StageStyle stageStyle) {
+        this.stageStyle = stageStyle;
+    }
 
     public static void main(String[] args) {
         launch(args);
     }
+
     @Override
     public void start(Stage readerStage) throws IOException {
+        readerStage.initStyle(stageStyle);
         DataManager.readerStage=readerStage;
         readerStage.getIcons().add(new Image("images/图标/圆角图标.png"));
-        readerStage.setMinHeight(600);
-        readerStage.setMinWidth(500);
+        readerStage.setMinHeight(350);
+        readerStage.setMinWidth(250);
         FXMLLoader loader=new FXMLLoader();
         loader.setLocation(Main.class.getResource("/fxml/reader.fxml"));
         Pane root = loader.load();

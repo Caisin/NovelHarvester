@@ -26,10 +26,10 @@ import java.util.concurrent.Future;
  * 文本小说下载器
  */
 public class NovelDownloader implements DownloadAdapter {
-    private List<String> list;
-    private List<String> nameList;
-    private DownloadConfig config;
-    private NovelSpider spider;
+    private List<String> list;//URL列表
+    private List<String> nameList;//章节名字列表
+    private DownloadConfig config;//下载配置
+    private NovelSpider spider;//解析配置
     private List overNum = Collections.synchronizedList(new ArrayList<>());//完成数量
     private ExecutorService service;
     private String imgPath;//缩略图
@@ -54,7 +54,8 @@ public class NovelDownloader implements DownloadAdapter {
         String tempPath = config.getPath() + "/block/" + spider.getConfig().get("title") + "/";//分块目录位置
         path = config.getPath();//下载位置
         File f = new File(tempPath);
-        f.mkdirs();
+        FileUtil.deleteDir(f);//删除原有的
+        f.mkdirs();//重新创建文件夹
         //计算需要线程数量
         int threadNum = (int) Math.ceil(list.size() * 1.0 / config.getPerThreadDownNum());
         //如果不合并则单线程下载
@@ -67,6 +68,7 @@ public class NovelDownloader implements DownloadAdapter {
         int st;
         int end = 0;
         List<Future<String>> Task = new ArrayList<>();//任务监控
+        final int num = threadNum;
         for (int i = 0; i < threadNum; i++) {
             isShutdown.add(true);
             if (i == threadNum - 1) {//最后一次不足每个线程下载章节数量，则全部下载
@@ -81,20 +83,22 @@ public class NovelDownloader implements DownloadAdapter {
             final int eIndex = end;
             Task.add(service.submit(new Callable<String>() {
                 @Override
-                public String call() throws Exception {
+                public String call(){
                     String path;
-                    //是否合并，不合并则每个章节按照标题命名
-                    if (config.isMergeFile()) {
-                        path = tempPath + sIndex + "-" + eIndex + ".txt";
-                    } else {
-                        path = tempPath + nameList.get(sIndex) + ".txt";
-                    }
                     //分块下载
-                    try (PrintWriter out = new PrintWriter(
-                            new OutputStreamWriter(
-                                    new FileOutputStream(new File(path)), spider.getConfig().get("charset")))) {
-                        StringBuffer content;
-                        for (int i = sIndex; i < eIndex; i++) {
+                    for (int i = sIndex; i < eIndex; i++) {
+                        //是否合并，不合并则每个章节按照标题命名
+                        if (config.isMergeFile() && num != 1) {
+                            path = tempPath + sIndex + "-" + eIndex + ".txt";
+                        }else if(config.isMergeFile() && num == 1) {
+                            path = tempPath + i + "-" + i + ".txt";
+                        }else {
+                            path = tempPath + nameList.get(i) + ".txt";
+                        }
+                        try (PrintWriter out = new PrintWriter(
+                                new OutputStreamWriter(
+                                        new FileOutputStream(new File(path), true), spider.getConfig().get("charset")), true)) {
+                            StringBuffer content;
                             if (!isShutdown.get(taskId)) {
                                 return null;
                             }
@@ -122,21 +126,14 @@ public class NovelDownloader implements DownloadAdapter {
                             }
                             out.println(nameList.get(i));
                             out.println(content.toString());
-                            out.flush();
-                            //文本转码
-                            if(overNum.size()+1==getMaxNum()){
-                                //下载完成合并
-                                FileUtil.mergeFiles(spider.getConfig().get("title"), config.getPath(), tempPath, true, spider.getConfig().get("charset"));
-                                //合并完成转码
-                                if(!config.getFormat().equals("txt")){
-                                    EpubUtil.Txt2Epub(config.getPath()+spider.getConfig().get("title"),spider.getConfig().get("title")," ",config.getFormat());
-                                }
+                            //没有到最后一个
+                            if(overNum.size()!=(getMaxNum()-1)){
+                                overNum.add(i);
                             }
-                            overNum.add(i);
                             Thread.sleep(config.getSleepTime());
+                        } catch (Exception e) {
+                            System.out.println(e.getMessage());
                         }
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
                     }
                     return null;
                 }
@@ -150,6 +147,16 @@ public class NovelDownloader implements DownloadAdapter {
                 System.out.println("线程异常终止");
             }
         }
+        //文本转码
+        if (config.isMergeFile()) {
+            //下载完成合并
+            FileUtil.mergeFiles(spider.getConfig().get("title"), config.getPath(), tempPath, spider.getConfig().get("charset"));
+            //合并完成转码
+            if (!config.getFormat().equals("txt")) {
+                EpubUtil.Txt2Epub(config.getPath() + spider.getConfig().get("title"), spider.getConfig().get("title"), " ", config.getFormat());
+            }
+        }
+        overNum.add("下载完成");
     }
 
     //已经下载数量

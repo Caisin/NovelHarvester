@@ -6,6 +6,7 @@ import com.jfoenix.controls.JFXToggleButton;
 import com.unclezs.Mapper.NovelMapper;
 import com.unclezs.Mapper.ReaderMapper;
 import com.unclezs.Model.ReaderConfig;
+import com.unclezs.UI.App.Reader;
 import com.unclezs.UI.Node.ProgressFrom;
 import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.UI.Utils.LayoutUitl;
@@ -14,17 +15,21 @@ import com.unclezs.Utils.VoiceUtil;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -38,11 +43,11 @@ public class ReaderController implements Initializable {
     @FXML
     Label title;//标题
     @FXML
-    JFXToggleButton voice, changePage;//朗读
+    JFXToggleButton voice;//朗读
     @FXML
     Label readLabel, fontAdd, fontless, fontText, chapter, hideSet,
-            setting, pageAdd, pageLess, song, yahei, kaiti, pageWidth,
-            fontStyle, pageSize, changePageLabel, preBtn, nextBtn, leftLabel, rightLabel;//设置页
+            pageAdd, pageLess, song, yahei, kaiti, pageWidth,
+            fontStyle, pageSize, leftLabel, rightLabel;//设置页
     @FXML
     Label huyan, yangpi, heise, molv, anse, baise;//背景色
     @FXML
@@ -64,6 +69,7 @@ public class ReaderController implements Initializable {
     boolean firstLoading = true;//第一次加载标志
     boolean isPageTopOver = false;//一章节顶部标志
     boolean isPageDownOver = false;//一章节尾部标志
+    private static String itemText = "隐藏边框";//隐藏边框菜单文字
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -97,9 +103,9 @@ public class ReaderController implements Initializable {
             double width = DataManager.readerStage.getWidth();
             //如果窗口宽度低于内容初始宽度，进行缩放，直至小于窗口最小宽度
             if (width < contentMaxWidth) {
-                content.maxWidthProperty().bind(root.widthProperty().subtract(60));//60为边距
+                content.maxWidthProperty().bind(root.widthProperty());
             } else if (width > contentMaxWidth) {
-                content.maxWidthProperty().bind(root.widthProperty().subtract(width - contentMaxWidth + 60));
+                content.maxWidthProperty().bind(root.widthProperty().subtract(width - contentMaxWidth));
             }
         });
     }
@@ -122,7 +128,7 @@ public class ReaderController implements Initializable {
                 LayoutUitl.bindWidth(root, content, title);
                 title.maxWidthProperty().bind(root.maxWidthProperty());
                 title.layoutYProperty().bind(content.scrollTopProperty().multiply(-1));//标题位置随滚动条内容变化
-                content.layoutXProperty().bind((root.layoutXProperty().add(root.widthProperty().subtract(content.widthProperty()))).divide(2));
+                content.layoutXProperty().bind(root.layoutXProperty().add(DataManager.readerStage.widthProperty().subtract(content.maxWidthProperty()).divide(2).add(15)));
                 //翻页区域绑定
                 leftLabel.prefWidthProperty().bind(root.widthProperty().multiply(0.2));
                 leftLabel.prefHeightProperty().bind(root.heightProperty());
@@ -130,9 +136,7 @@ public class ReaderController implements Initializable {
                 rightLabel.prefHeightProperty().bind(root.heightProperty());
                 rightLabel.layoutXProperty().bind(root.layoutXProperty().add(root.widthProperty().subtract(rightLabel.widthProperty())));
                 autoSize();
-                //获取scrollPane
                 sp = (ScrollPane) content.lookup(".scroll-pane");//获取textarea的scrollPane;
-//                System.out.println("222222222222");
                 content.setScrollTop(DataManager.book.getvValue());
                 changePageHandler();
             }
@@ -158,6 +162,63 @@ public class ReaderController implements Initializable {
             }).start();
             DataManager.mainStage.show();
         });
+
+        //上下文菜单
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem preChapter = new MenuItem("上一章", new ImageView("images/设置页/上一章.jpg"));
+        MenuItem nextChapter = new MenuItem("下一章", new ImageView("images/设置页/下一章.jpg"));
+        MenuItem set = new MenuItem("设置", new ImageView("images/设置页/设置.jpg"));
+        MenuItem winTop = new MenuItem("窗口置顶", new ImageView("images/设置页/置顶.png"));
+        MenuItem winHide = new MenuItem(itemText, new ImageView("images/设置页/隐藏.png"));
+        contextMenu.getItems().addAll(nextChapter, preChapter, new SeparatorMenuItem(), set, new SeparatorMenuItem(), winTop, winHide);
+        //设置界面
+        set.setOnAction(eee -> {
+            setPane.setVisible(true);
+        });
+        //窗口置顶
+        winTop.setOnAction(e -> {
+            if (winTop.getText().equals("窗口置顶")) {
+                DataManager.readerStage.setAlwaysOnTop(true);
+                winTop.setText("取消置顶");
+            } else {
+                DataManager.readerStage.setAlwaysOnTop(false);
+                winTop.setText("窗口置顶");
+            }
+        });
+        //换章
+        preChapter.setOnAction(e -> loadChapter(--index));
+        nextChapter.setOnAction(e -> loadChapter(++index));
+        //窗口隐藏
+        winHide.setOnAction(e -> {
+            DataManager.readerStage.close();
+            double x = DataManager.readerStage.getX();
+            double y = DataManager.readerStage.getY();
+            double height = DataManager.readerStage.getHeight();
+            double width = DataManager.readerStage.getWidth();
+            Stage stage = new Stage();
+            stage.setX(x);
+            stage.setY(y);
+            if (itemText.equals("隐藏边框")) {
+                itemText = "显示边框";
+                Reader reader = new Reader(StageStyle.UNDECORATED);
+                try {
+                    reader.start(stage);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            } else {
+                itemText = "隐藏边框";
+                Reader reader = new Reader(StageStyle.DECORATED);
+                try {
+                    reader.start(stage);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            stage.setHeight(height);
+            stage.setWidth(width);
+        });
+        content.setContextMenu(contextMenu);
     }
 
     //加载阅读器配置
@@ -308,18 +369,6 @@ public class ReaderController implements Initializable {
                 scrollNum = 0;
             }
         });
-
-        //按钮翻页
-        preBtn.setOnMouseClicked(event -> {
-            loadChapter(--index);
-            sp.setVvalue(0);
-            return;
-        });
-        nextBtn.setOnMouseClicked(e -> {
-            loadChapter(++index);
-            sp.setVvalue(0);
-            return;
-        });
     }
 
     //语音朗读
@@ -338,13 +387,7 @@ public class ReaderController implements Initializable {
     //设置
     void initSetting() {
         //绑定位置在右下角
-        setting.layoutYProperty().bind(root.layoutYProperty().add(root.heightProperty()).subtract(65));
-        setting.layoutXProperty().bind(root.layoutXProperty().add(root.widthProperty()).subtract(31));
-        nextBtn.layoutXProperty().bind(setting.layoutXProperty().add(2));
-        nextBtn.layoutYProperty().bind(setting.layoutYProperty().add(31));
-        preBtn.layoutYProperty().bind(nextBtn.layoutYProperty());
-        preBtn.layoutXProperty().bind(nextBtn.layoutXProperty().subtract(30));
-        setPane.layoutYProperty().bind(setting.layoutYProperty().subtract(330));
+        setPane.layoutYProperty().bind(root.layoutYProperty().add(root.heightProperty()).subtract(290));
         setPane.layoutXProperty().bind(root.layoutXProperty().add(root.widthProperty()).subtract(230));
         //背景色更换
         molv.setOnMouseClicked(e -> changeColor(" #5e8e87", "#F0F0F0"));
@@ -374,16 +417,6 @@ public class ReaderController implements Initializable {
         fontless.setOnMouseClicked(e -> {
             content.setFont(Font.font(content.getFont().getFamily(), content.getFont().getSize() - 1));
         });
-        //打开隐藏设置
-        setting.setOnMouseClicked(e -> {
-            setPane.setVisible(true);
-            setting.setVisible(false);
-        });
-        //关闭设置
-        hideSet.setOnMouseClicked(e -> {
-            setPane.setVisible(false);
-            setting.setVisible(true);
-        });
         //页面宽度
         pageLess.setOnMouseClicked(e -> {
             if (contentMaxWidth <= 850) {
@@ -411,9 +444,7 @@ public class ReaderController implements Initializable {
         yahei.setOnMouseClicked(e -> {
             content.setFont(Font.font("Microsoft YaHei", content.getFont().getSize()));
         });
-        //显示翻页按钮
-        preBtn.visibleProperty().bind(changePage.selectedProperty());
-        nextBtn.visibleProperty().bind(changePage.selectedProperty());
+        hideSet.setOnMouseClicked(e -> setPane.setVisible(false));
         //图标设置
         fontText.setGraphic(new ImageView("images/设置页/字体.png"));
         fontAdd.setGraphic(new ImageView("images/设置页/字体放大.png"));
@@ -425,17 +456,9 @@ public class ReaderController implements Initializable {
         pageLess.setGraphic(new ImageView("images/设置页/阅读页_页面缩小.jpg"));
         pageWidth.setGraphic(new ImageView("images/设置页/页面大小.jpg"));
         fontStyle.setGraphic(new ImageView("images/设置页/字体样式.jpg"));
-        changePageLabel.setGraphic(new ImageView("images/设置页/显示.png"));
-        preBtn.setGraphic(new ImageView("images/设置页/上一章.jpg"));
-        nextBtn.setGraphic(new ImageView("images/设置页/下一章.jpg"));
     }
 
-    /**
-     * 切换背景
-     *
-     * @param color     背景色
-     * @param fontcolor 字体颜色
-     */
+    // 切换背景
     public void changeColor(String color, String fontcolor) {
         content.setStyle("-fx-text-fill: " + fontcolor + ";");
         root.setStyle("-fx-background-color: " + color + ";");

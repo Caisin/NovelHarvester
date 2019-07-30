@@ -30,6 +30,7 @@ public class ProgressFrom {
 
     /**
      * 加载条
+     *
      * @param primaryStage 父舞台
      */
     public ProgressFrom(Stage primaryStage) {
@@ -50,11 +51,16 @@ public class ProgressFrom {
         vBox.getChildren().addAll(progressIndicator);
         Scene scene = new Scene(vBox);
         scene.setFill(null);
-        if(primaryStage.equals(DataManager.mainStage)){
-            Platform.runLater(()->{
+        if (primaryStage.equals(DataManager.mainStage)) {
+            Platform.runLater(() -> {
                 //居中  舞台X坐标+（舞台宽度-菜单宽度）/2 +弹窗宽度+菜单宽度
-                dialogStage.setX(primaryStage.getX()+(primaryStage.getWidth()-150)/2-dialogStage.getWidth()/2+150);
-                dialogStage.setY(primaryStage.getY()+(primaryStage.getHeight())/2-dialogStage.getHeight()/2);
+                dialogStage.setX(primaryStage.getX() + (primaryStage.getWidth() - 150) / 2 - dialogStage.getWidth() / 2 + 150);
+                dialogStage.setY(primaryStage.getY() + (primaryStage.getHeight()) / 2 - dialogStage.getHeight() / 2);
+            });
+        } else {
+            Platform.runLater(() -> {
+                dialogStage.setX(primaryStage.getX() + (primaryStage.getWidth()) / 2 - dialogStage.getWidth() / 2);
+                dialogStage.setY(primaryStage.getY() + (primaryStage.getHeight()) / 2 - dialogStage.getHeight() / 2);
             });
         }
         dialogStage.setScene(scene);
@@ -62,22 +68,22 @@ public class ProgressFrom {
 
     public void activateProgressBar() {
         dialogStage.show();
-        TimerTask task=new TimerTask() {
+        TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                Platform.runLater(()->{
-                    if(dialogStage.isShowing()){
+                Platform.runLater(() -> {
+                    if (dialogStage.isShowing()) {
                         cancelProgressBar();
                         ToastUtil.toast("请求超时");
                     }
                 });
             }
         };
-        Timer timer=new Timer();
-        timer.schedule(task,10000);
+        Timer timer = new Timer();
+        timer.schedule(task, 10000);
     }
 
-    public Stage getDialogStage(){
+    public Stage getDialogStage() {
         return dialogStage;
     }
 

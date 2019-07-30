@@ -7,10 +7,7 @@ import com.unclezs.Model.AudioChapter;
 import com.unclezs.Model.DownloadConfig;
 import com.unclezs.Utils.FileUtil;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -34,15 +31,16 @@ public class AudioDownloader implements DownloadAdapter {
     private List<String> taskUrl;
     private ExecutorService service;
     private boolean isPhone;//是否开启手机模式下载
-    private List<Boolean> isShutdown=new ArrayList<>();
-    public AudioDownloader(DownloadConfig config, AudioBook book,boolean isPhone) {
+    private List<Boolean> isShutdown = new ArrayList<>();
+
+    public AudioDownloader(DownloadConfig config, AudioBook book, boolean isPhone) {
         this.config = config;
-        this.isPhone=isPhone;
+        this.isPhone = isPhone;
         this.book = book;
-        this.overNum= Collections.synchronizedList(new ArrayList<>(book.getChapters().size()));
+        this.overNum = Collections.synchronizedList(new ArrayList<>(book.getChapters().size()));
         //获取任务列表
-        this.taskUrl=new ArrayList<>(book.getChapters().size());
-        for (AudioChapter chapter:book.getChapters()){
+        this.taskUrl = new ArrayList<>(book.getChapters().size());
+        for (AudioChapter chapter : book.getChapters()) {
             this.taskUrl.add(chapter.getUrl());
         }
     }
@@ -50,14 +48,14 @@ public class AudioDownloader implements DownloadAdapter {
     @Override
     public void start() {
         //保存封面
-        new Thread(()->{
+        new Thread(() -> {
             String img = FileUtil.uploadFile("./image/audio/" + UUID.randomUUID() + ".jpg", book.getImageUrl());
             book.setImageUrl(img);
         });
         //更新路径
-        config.setPath(config.getPath()+book.getTitle());
+        config.setPath(config.getPath() + book.getTitle());
         //计算需要线程数量
-        int threadNum=(int) Math.ceil(book.getChapters().size()*1.0/config.getPerThreadDownNum());
+        int threadNum = (int) Math.ceil(book.getChapters().size() * 1.0 / config.getPerThreadDownNum());
         service = Executors.newFixedThreadPool(threadNum % 50);//最大50开辟50个线程的线程池
         //任务分发
         int st;
@@ -65,55 +63,36 @@ public class AudioDownloader implements DownloadAdapter {
         List<Future<String>> task = new ArrayList<>();//任务监控
         for (int i = 0; i < threadNum; i++) {
             isShutdown.add(true);//标志正在运行
-            if (i == threadNum-1) {//最后一次不足每个线程下载章节数量，则全部下载
+            if (i == threadNum - 1) {//最后一次不足每个线程下载章节数量，则全部下载
                 st = end;
                 end = book.getChapters().size();
             } else {//每次增加配置数量
                 st = end;
                 end += config.getPerThreadDownNum();
             }
-            final int taskId=i;
-            final int sIndex=st;//开始下标
-            final int eIndex=end;//结束下标
+            final int taskId = i;
+            final int sIndex = st;//开始下标
+            final int eIndex = end;//结束下标
             task.add(service.submit(new Callable<String>() {
                 @Override
                 public String call() throws Exception {
-                    AudioNovelSpider spider=new AudioNovelSpider();
+                    AudioNovelSpider spider = new AudioNovelSpider();
                     spider.setPhone(isPhone);
                     for (int j = sIndex; j < eIndex; j++) {
-                        if(!isShutdown.get(taskId)){
+                        if (!isShutdown.get(taskId)) {
                             return null;//监听中途停止
                         }
                         String src = spider.getSrc(taskUrl.get(j));
                         String path = getDownloadPath(j, src);
-                        try {
-                            File file = new File(path);
-                            if(!file.exists()){
-                                file.getParentFile().mkdirs();
-                                file.createNewFile();
+                        for (int k = 0; k < 10; k++) {//重试10次，全部失败则下载失败
+                            try {
+                                download(path, src);
+                                break;
+                            } catch (Exception e) {
+                                if (k == 9) {
+                                    System.out.println("下载失败" + src);
+                                }
                             }
-                            URL url = new URL(src);
-                            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-                            connection.setConnectTimeout(10000);
-                            connection.setReadTimeout(10000);
-                            if(isPhone){
-                                connection.setRequestProperty("User-Agent","Mozilla/5.0 (Linux; U; Android 9; zh-CN; MI MAX 3 Build/PKQ1.190118.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.108 UCBrowser/12.5.0.1030 Mobile Safari/537.36");
-                            }else {
-                                connection.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
-                            }
-                            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(path));
-                            BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
-                            byte[] buffer = new byte[1024*1024];
-                            int count = 0;
-                            while ((count = in.read(buffer)) > 0) {
-                                out.write(buffer, 0, count);
-                            }
-                            out.close();/*后面三行为关闭输入输出流以及网络资源的固定格式*/
-                            in.close();
-                            connection.disconnect();
-                        } catch (Exception e) {
-                            System.out.println(e.getCause());
-                            System.out.println("下载失败"+src);
                         }
                         overNum.add(j);
                         Thread.sleep(config.getSleepTime());
@@ -125,18 +104,47 @@ public class AudioDownloader implements DownloadAdapter {
         for (Future<String> future : task) {
             try {
                 future.get();//阻塞等待完成
-            } catch (Exception e){
+            } catch (Exception e) {
                 System.out.println("线程异常终止");//下载失败
             }
         }
         service.shutdown();//销毁线程池
     }
 
+    //下载器
+    private void download(String path, String src) throws IOException {
+        File file = new File(path);
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+        }
+        URL url = new URL(src);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setConnectTimeout(10000);
+        connection.setReadTimeout(10000);
+        //根据是否为手机模式设置UA
+        if (isPhone) {
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; U; Android 9; zh-CN; MI MAX 3 Build/PKQ1.190118.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.108 UCBrowser/12.5.0.1030 Mobile Safari/537.36");
+        } else {
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
+        }
+        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(path));
+        BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
+        byte[] buffer = new byte[1024 * 1024];//1M缓冲区
+        int count = 0;
+        while ((count = in.read(buffer)) > 0) {
+            out.write(buffer, 0, count);
+        }
+        out.close();/*后面三行为关闭输入输出流以及网络资源的固定格式*/
+        in.close();
+        connection.disconnect();
+    }
+
     @Override
     public void stop() {
         //全部标志为停止
-        for (int i = 0; i <isShutdown.size() ; i++) {
-            isShutdown.set(i,false);
+        for (int i = 0; i < isShutdown.size(); i++) {
+            isShutdown.set(i, false);
         }
         service.shutdown();
         service.shutdownNow();
@@ -171,12 +179,13 @@ public class AudioDownloader implements DownloadAdapter {
     public String getType() {
         return "音频文件";
     }
+
     //获取下载路径及文件名字
-    private String getDownloadPath(int index,String src){
-        String suffix=".mp3";
-        if(src.contains("m4a")){
-            suffix=".m4a";
+    private String getDownloadPath(int index, String src) {
+        String suffix = ".mp3";
+        if (src.contains("m4a")) {
+            suffix = ".m4a";
         }
-        return config.getPath()+"/"+book.getChapters().get(index).getTitle()+suffix;
+        return config.getPath() + "/" + book.getChapters().get(index).getTitle() + suffix;
     }
 }

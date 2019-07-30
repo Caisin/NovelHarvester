@@ -26,7 +26,7 @@ import java.util.ResourceBundle;
  */
 public class SettingMenuController implements Initializable {
     @FXML
-    Label github, help, setting, about, safe,update;
+    Label github, help, setting, about, safe, update, group;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -42,7 +42,8 @@ public class SettingMenuController implements Initializable {
         about.setGraphic(new ImageView("images/设置页/关于.jpg"));
         help.setGraphic(new ImageView("images/设置页/打赏.jpg"));
         update.setGraphic(new ImageView("images/菜单页/更新.jpg"));
-        changeBackColor(github, setting, safe, about, help,update);
+        group.setGraphic(new ImageView("images/设置页/群组.png"));
+        changeBackColor(github, setting, safe, about, help, update, group);
     }
 
     //事件初始化
@@ -57,14 +58,14 @@ public class SettingMenuController implements Initializable {
         });
         //设置
         setting.setOnMouseClicked(e -> {
-            Stage stage=getStage();
+            Stage stage = getStage();
             try {
                 Pane pane = FXMLLoader.load(getClass().getResource("/fxml/setting.fxml"));
-                Scene scene=new Scene(pane);
+                Scene scene = new Scene(pane);
                 stage.setTitle("设置");
                 stage.setScene(scene);
                 stage.show();
-                stage.setOnCloseRequest(event->{//关闭时保存设置
+                stage.setOnCloseRequest(event -> {//关闭时保存设置
                     SettingController.updateSetting();
                 });
             } catch (IOException ex) {
@@ -74,10 +75,10 @@ public class SettingMenuController implements Initializable {
         });
         //帮助
         help.setOnMouseClicked(e -> {
-            Stage stage=getStage();
+            Stage stage = getStage();
             try {
                 Pane pane = FXMLLoader.load(getClass().getResource("/fxml/reward.fxml"));
-                Scene scene=new Scene(pane);
+                Scene scene = new Scene(pane);
                 stage.setTitle("打赏作者");
                 stage.setScene(scene);
                 stage.show();
@@ -88,15 +89,22 @@ public class SettingMenuController implements Initializable {
         //赞赏
         //关于
         about.setOnMouseClicked(e -> {
-            AlertUtil.getAlert("关于", "如果有问题欢迎反馈给我😄\r\n\r\n版本号：V3.44\r\n开发者QQ：1585503310\r\n开发者邮箱：1585503310@qq.com\r\n问题反馈建议Q群: 774716671").show();
+            AlertUtil.getAlert("关于", "如果有问题欢迎反馈给我😄\r\n\r\n版本号：V3.48\r\n开发者QQ：1585503310\r\n开发者邮箱：1585503310@qq.com\r\n问题反馈建议Q群: 774716671").show();
         });
         //免责声明
         safe.setOnMouseClicked(e -> {
             AlertUtil.getAlert("免责声明", "软件仅供技术交流，请勿用于商业及非法用途，\r\n如产生法律纠纷与本人无关，如有侵权请联系我删除.").show();
         });
-        update.setOnMouseClicked(e->{
+        update.setOnMouseClicked(e -> {
             try {
                 Desktop.getDesktop().browse(new URI("https://unclezs.gitee.io/service/%E6%9B%B4%E6%96%B0%E8%AF%B4%E6%98%8E.html"));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+        group.setOnMouseClicked(e -> {
+            try {
+                Desktop.getDesktop().browse(new URI("https://shang.qq.com/wpa/qunwpa?idkey=e49493cef7cb08f05a60d84feed2338ddbde2930cae9deac75b7f3b7f4fac697"));
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -117,8 +125,8 @@ public class SettingMenuController implements Initializable {
     }
 
     //获取默认舞台
-    private Stage getStage(){
-        Stage stage=new Stage();
+    private Stage getStage() {
+        Stage stage = new Stage();
         stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(DataManager.mainStage);

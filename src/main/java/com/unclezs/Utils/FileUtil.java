@@ -24,6 +24,7 @@ public class FileUtil {
             return true;
         return false;
     }
+
     //获取文件编码
     public static String codeFile(String path) throws IOException {
         CodepageDetectorProxy detector = CodepageDetectorProxy.getInstance();
@@ -31,22 +32,24 @@ public class FileUtil {
         Charset encode = detector.detectCodepage(new File(path).toURI().toURL());
         return encode.name();
     }
+
     //按照字节写文件
-    public static void writeFileByte(String path,InputStream is) throws IOException {
+    public static void writeFileByte(String path, InputStream is) throws IOException {
         File file = new File(path);
-        if(!file.exists()){
+        if (!file.exists()) {
             file.getParentFile().mkdirs();
             file.createNewFile();
         }
-        BufferedInputStream bis=new BufferedInputStream(is);
-        BufferedOutputStream bos=new BufferedOutputStream(new FileOutputStream(file));
-        byte[] b=new byte[1024];
+        BufferedInputStream bis = new BufferedInputStream(is);
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+        byte[] b = new byte[1024];
         int len;
-        while ((len=bis.read(b))!=-1){
-            bos.write(b,0,len);
+        while ((len = bis.read(b)) != -1) {
+            bos.write(b, 0, len);
         }
         is.close();
     }
+
     // { 通用文本读取，写入
     // 优先使用这个读取文本，快点，变量大小可以调整一下以达到最好的速度
     public static String readText(String filePath, String inFileEnCoding) {
@@ -73,6 +76,7 @@ public class FileUtil {
         }
         return retStr.toString();
     }
+
     // 写入指定编码，速度快点
     public static void writeText(String iStr, String filePath, String oFileEncoding) {
         boolean bAppend = false;
@@ -85,17 +89,18 @@ public class FileUtil {
             System.err.println(e.toString());
         }
     }
+
     //下载文件
-    public static String uploadFile(String path,String uri,int size){
+    public static String uploadFile(String path, String uri, int size) {
         try {
             File file = new File(path);
-            if(!file.exists()){
+            if (!file.exists()) {
                 file.getParentFile().mkdirs();
                 file.createNewFile();
             }
             URL url = new URL(uri);/*将网络资源地址传给,即赋值给url*/
             /*此为联系获得网络资源的固定格式用法，以便后面的in变量获得url截取网络资源的输入流*/
-            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setReadTimeout(10000);
             connection.setConnectTimeout(10000);
             BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
@@ -119,21 +124,22 @@ public class FileUtil {
             return "";
         }
     }
+
     //下载图片
-    public static String uploadFile(String path,String uri){
-        return uploadFile(path,uri,4*1024);
+    public static String uploadFile(String path, String uri) {
+        return uploadFile(path, uri, 4 * 1024);
     }
 
     /**
      * 合并文件
-     * @param name 合并后的文件名字
-     * @param path 保存路径
+     *
+     * @param name     合并后的文件名字
+     * @param path     保存路径
      * @param tempPath 要合并的文件目录
-     * @param isdel 是否删除块文件
-     * @param code 编码
+     * @param code     编码
      * @return 合并后的绝对路径
      */
-    public static String mergeFiles(String name, String path,String tempPath, boolean isdel, String code) {
+    public static String mergeFiles(String name, String path, String tempPath, String code) {
         // 过滤出分块文件
         File temPath = new File(tempPath);//分块目录
         File[] files = temPath.listFiles(new FileFilter() {
@@ -150,34 +156,34 @@ public class FileUtil {
         try (PrintWriter out = new PrintWriter(
                 new OutputStreamWriter(new FileOutputStream(new File(path + "/" + name.replaceAll("[^\\u4E00-\\u9FFF]", "") + ".txt")), code));) {
             for (File file : files) {
+                System.out.println(file.getName());
                 BufferedReader buf = new BufferedReader(
                         new InputStreamReader(new FileInputStream(file.getAbsolutePath()), code));
-                String line = null;
+                String line;
                 while ((line = buf.readLine()) != null)
                     out.println(line);
                 out.println();
                 buf.close();
-                if (isdel)
-                    file.delete();
             }
             //删除分块临时文件夹
-            temPath.delete();
+            deleteDir(temPath);
             return path;
         } catch (Exception e) {
             throw new RuntimeException("文件合并失败");
         }
     }
 
+    //删除文件夹
     public static boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list(); // 递归删除目录中的子目录下
             for (int i = 0; i < children.length; i++) {
-                if (! deleteDir(new File(dir, children[i])) ) {
+                if (!deleteDir(new File(dir, children[i]))) {
                     return false;
                 }
             }
         } // 目录此时为空，可以删除
-        boolean bDeleted = false ;
+        boolean bDeleted = false;
         try {
             bDeleted = dir.delete();
         } catch (Exception e) {
@@ -195,4 +201,5 @@ public class FileUtil {
             return o1index > o2index ? 1 : -1;
         }
     }
+
 }

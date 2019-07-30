@@ -5,7 +5,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="133.0" prefWidth="134.0" style="-fx-background-color: #F0F0F0; -fx-border-color: #c2c2c2;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unclezs.UI.Controller.SettingMenuController">
+<VBox prefHeight="229.0" prefWidth="134.0" style="-fx-background-color: #F0F0F0; -fx-border-color: #c2c2c2;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unclezs.UI.Controller.SettingMenuController">
    <children>
       <Label fx:id="github" alignment="CENTER" maxHeight="25" minHeight="25" prefHeight="17.0" prefWidth="137.0" text="GitHub源码">
          <VBox.margin>
@@ -33,6 +33,11 @@
       </Label>
       <Label fx:id="update" alignment="CENTER" layoutX="10.0" layoutY="61.0" maxHeight="25" minHeight="25" prefHeight="17.0" prefWidth="137.0" text="更新说明     ">
          <VBox.margin>
+            <Insets top="5.0" />
+         </VBox.margin>
+      </Label>
+      <Label fx:id="group" alignment="CENTER" layoutX="10.0" layoutY="61.0" maxHeight="25" minHeight="25" prefHeight="17.0" prefWidth="137.0" text="加入反馈群 ">
+         <VBox.margin>
             <Insets bottom="5.0" top="5.0" />
          </VBox.margin>
       </Label>
@@ -43,9 +48,9 @@
          <VBox.margin>
             <Insets left="16.0" />
          </VBox.margin></Pane>
-      <Label fx:id="safe" alignment="CENTER" layoutX="10.0" layoutY="61.0" maxHeight="25" minHeight="25" prefHeight="17.0" prefWidth="137.0" text="免责声明     ">
+      <Label fx:id="safe" alignment="CENTER" maxHeight="25" minHeight="25" prefHeight="17.0" prefWidth="137.0" text="免责声明     ">
          <VBox.margin>
-            <Insets bottom="10" top="5.0" />
+            <Insets bottom="10.0" top="5.0" />
          </VBox.margin>
       </Label>
    </children>

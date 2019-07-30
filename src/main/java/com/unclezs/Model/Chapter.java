@@ -9,10 +9,18 @@ public class Chapter {
     private String chapterUrl;//章节url
     private Integer aid;//小说id
 
+    public Chapter() {
+    }
+
     public Chapter(String chapterName, String chapterUrl, Integer aid) {
         this.chapterName = chapterName;
         this.chapterUrl = chapterUrl;
         this.aid = aid;
+    }
+
+    public Chapter(String chapterName, String chapterUrl) {
+        this.chapterName = chapterName;
+        this.chapterUrl = chapterUrl;
     }
 
     public String getChapterName() {

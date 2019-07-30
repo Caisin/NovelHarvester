@@ -49,8 +49,15 @@ public class SettingController implements Initializable {
     }
 
     void initData() {//初始化数据
-        chapterNum.getItems().addAll(50, 100, 200, 400, 800, 1000, 1600, 3200, 6400);
-        delay.getItems().addAll(0, 1, 2, 3, 5, 10, 15, 30, 60, 120, 180, 240, 600, 900);
+        for (int i = 0; i < 30; i++) {
+            delay.getItems().add(i);
+        }
+        for (int i = 30; i < 1000; i += 5) {
+            delay.getItems().add(i);
+        }
+        for (int i = 50; i < 10000; i += 100) {
+            chapterNum.getItems().add(i);
+        }
         SettingMapper mapper = MybatisUtils.getMapper(SettingMapper.class);
         config = mapper.querySetting();
         MybatisUtils.getCurrentSqlSession().close();
@@ -76,7 +83,7 @@ public class SettingController implements Initializable {
     void initEventHandler() {
         //值改变监听
         merge.selectedProperty().addListener(e -> {
-            config.setMergeFile(merge.isScaleShape());
+            config.setMergeFile(merge.isSelected());
         });
         chapterNum.valueProperty().addListener(e -> {
             config.setPerThreadDownNum(chapterNum.getValue());

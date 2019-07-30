@@ -69,8 +69,7 @@ public class AnalysisController implements Initializable {
 
     //成员
     ContextMenu contextMenu = new ContextMenu();
-    private ObservableList<String> chapterUrlList;//url列表
-    private Map<String, String> chapterMap;//url列表
+    private List<Chapter> chapters;//章节列表
     private AnalysisConfig config = new AnalysisConfig();//解析配置
     private NovelSpider spider;//爬虫
     private boolean startSelected = false;//shift多选开启标志
@@ -142,6 +141,9 @@ public class AnalysisController implements Initializable {
                     contextMenu.getItems().get(0).setOnAction(e -> {
                         showChapterContent(list.getSelectionModel().getSelectedIndex());
                     });
+                    contextMenu.getItems().get(5).setOnAction(e -> {
+                        reNameChapterNames();
+                    });
                     contextMenu.show(DataManager.mainStage);
                 }
             }
@@ -175,12 +177,12 @@ public class AnalysisController implements Initializable {
 
     //显示章节内容
     private void showChapterContent(int index) {
-        content.setText("正在获取章节：" + chapterMap.get(chapterUrlList.get(index)));
+        content.setText("正在获取章节：" + chapters.get(index).getChapterName());
         Task<String> task = new Task<String>() {
             @Override
             protected String call() throws Exception {
                 Map<String, String> config = spider.getConfig();
-                String text = spider.getContent(chapterUrlList.get(index), config.get("charset"));
+                String text = spider.getContent(chapters.get(index).getChapterUrl(), config.get("charset"));
                 return text;
             }
         };
@@ -205,25 +207,25 @@ public class AnalysisController implements Initializable {
         }
         Platform.runLater(() -> {
             list.getItems().clear(); //清除原有的
-            Task task = new Task() {
+            chapters = new ArrayList<>(500);
+            Task<List<Chapter>> task = new Task<List<Chapter>>() {
                 @Override
-                protected Object call() throws Exception {
+                protected List<Chapter> call() throws Exception {
                     //爬取章节列表
-                    chapterMap = spider.getChapterList(url);
-                    chapterUrlList = FXCollections.observableArrayList();
+                    Map<String, String> chapterMap = spider.getChapterList(url);
                     for (String c : chapterMap.keySet()) {
-                        chapterUrlList.add(c);
+                        chapters.add(new Chapter(chapterMap.get(c), c));//添加解析出来的章节列表
                     }
-                    return null;
+                    return chapters;
                 }
             };
             new Thread(task).start();
             ProgressFrom pf = new ProgressFrom(DataManager.mainStage);
             task.setOnSucceeded(e -> {
                 //加入listView
-                for (String c : chapterMap.keySet()) {
+                for (Chapter c : task.getValue()) {
                     JFXCheckBox cb = new JFXCheckBox();
-                    cb.setText(chapterMap.get(c));
+                    cb.setText(c.getChapterName());
                     cb.setSelected(true);
                     list.getItems().add(cb);
                 }
@@ -235,18 +237,16 @@ public class AnalysisController implements Initializable {
 
     //初始化右键菜单
     private void initContextMenu() {
-        MenuItem selectAll = new MenuItem("全选");
-        MenuItem showContent = new MenuItem("查看内容");
-        MenuItem unSelectAll = new MenuItem("全不选");
-        selectAll.setGraphic(new ImageView("images/解析页/全选.jpg"));
-        unSelectAll.setGraphic(new ImageView("images/解析页/反选.jpg"));
-        showContent.setGraphic(new ImageView("images/解析页/查看.jpg"));
-        contextMenu.getItems().addAll(showContent, new SeparatorMenuItem(), selectAll, unSelectAll);
+        MenuItem selectAll = new MenuItem("全选",new ImageView("images/解析页/全选.jpg"));
+        MenuItem showContent = new MenuItem("查看内容",new ImageView("images/解析页/查看.jpg"));
+        MenuItem unSelectAll = new MenuItem("全不选",new ImageView("images/解析页/反选.jpg"));
+        MenuItem reName = new MenuItem("重新命名章节序号",new ImageView("images/书架/修改.jpg"));
+        contextMenu.getItems().addAll(showContent, new SeparatorMenuItem(), selectAll, unSelectAll, new SeparatorMenuItem(), reName);
     }
 
     //添加到书架
     private void addToBookSelf() {
-        if (chapterUrlList == null || chapterUrlList.size() == 0) {
+        if (chapters == null || chapters.size() == 0) {
             ToastUtil.toast("请先解析目录后再添加！");
             return;
         }
@@ -277,13 +277,13 @@ public class AnalysisController implements Initializable {
                 mapper.save(book);
                 //保存选中的章节信息
                 Integer id = mapper.findLastOne().getId();
-                List<Chapter> chapters = new ArrayList<>();
-                for (String c : chapterMap.keySet()) {
-                    if (selectedNameItems.contains(chapterMap.get(c))) {
-                        chapters.add(new Chapter(chapterMap.get(c), c, id));
+                List<Chapter> cs = new ArrayList<>();
+                for (Chapter c : chapters) {
+                    if (selectedNameItems.contains(c.getChapterName())) {
+                        cs.add(new Chapter(c.getChapterName(), c.getChapterUrl(), id));
                     }
                 }
-                sqlSession.getMapper(ChapterMapper.class).saveChapters(chapters);//保存章节信息入库
+                sqlSession.getMapper(ChapterMapper.class).saveChapters(cs);//保存章节信息入库
                 sqlSession.getMapper(AnalysisMapper.class).saveAnalysisConfig(spider.getConf(), id);//保存解析器配置
                 sqlSession.close();
                 DataManager.needReloadBookSelf = true;//刷新书架
@@ -352,7 +352,7 @@ public class AnalysisController implements Initializable {
 
     //下载本书
     private void downloadBook() {
-        String r="[第]{0,1}.+?[章]{0,1}";
+        String r = "[第]{0,1}.+?[章]{0,1}";
         if (list.getItems().size() == 0) {
             ToastUtil.toast("请先解析目录！");
             return;
@@ -360,7 +360,7 @@ public class AnalysisController implements Initializable {
         SettingMapper mapper = MybatisUtils.getMapper(SettingMapper.class);
         DownloadConfig config = mapper.querySetting();
         if ("".equals(config.getPath()) || config.getPath() == null) {//路径不为空的时候使用当前路径
-            config.setPath(new File("./").getAbsolutePath().replace(".",""));
+            config.setPath(new File("./").getAbsolutePath().replace(".", ""));
             mapper.updateSetting(config);
         } else if (!new File(config.getPath()).exists()) {
             ToastUtil.toast("保存路径不存在！");
@@ -369,24 +369,11 @@ public class AnalysisController implements Initializable {
         //赛选出选中的条目
         List<String> taskUrlList = new ArrayList<>();
         List<String> selectedNameItems = new ArrayList<>();
-        for (JFXCheckBox cb : list.getItems()) {
-            if (cb.isSelected()) {
-                selectedNameItems.add(cb.getText());
+        for (int i = 0; i < list.getItems().size(); i++) {
+            if (list.getItems().get(i).isSelected()) {
+                taskUrlList.add(chapters.get(i).getChapterUrl());
+                selectedNameItems.add(chapters.get(i).getChapterName());
             }
-        }
-        for (String c : chapterMap.keySet()) {
-            if (selectedNameItems.contains(chapterMap.get(c))) {
-                taskUrlList.add(c);
-            }
-        }
-        //改变章节
-        for (int i = 0; i < selectedNameItems.size(); i++) {
-            String s = selectedNameItems.get(i);
-            s=s.replaceAll("[0-9]","")
-                    .replaceAll("第.+?章","")
-                    .replaceAll("","");//去掉所有数字
-            String newName="第"+(i+1)+"章 "+s;
-            selectedNameItems.set(i,newName);
         }
         NovelDownloader downloader = new NovelDownloader(taskUrlList, selectedNameItems, config, spider);
         DownloadController.addTask(downloader);
@@ -394,5 +381,23 @@ public class AnalysisController implements Initializable {
             downloader.start();
         }).start();
         ToastUtil.toast("添加下载任务成功！");
+    }
+
+    //重命名章节序号
+    private void reNameChapterNames() {
+        //赛选出选中的条目
+        int index = 1;
+        for (int i = 0; i < list.getItems().size(); i++) {
+            if (list.getItems().get(i).isSelected()) {
+                String s = this.chapters.get(i).getChapterName();
+                s = s.replaceAll("[0-9]", "")
+                        .replaceAll("第.+?章", "")
+                        .replaceAll("", "");//去掉所有数字
+                String newName = "第" + (index) + "章 " + s;
+                this.chapters.get(i).setChapterName(newName);//更新章节数据
+                this.list.getItems().get(i).setText(newName);//更新listView
+                index++;
+            }
+        }
     }
 }
