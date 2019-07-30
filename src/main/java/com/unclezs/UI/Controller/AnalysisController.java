@@ -212,11 +212,7 @@ public class AnalysisController implements Initializable {
                 @Override
                 protected List<Chapter> call() throws Exception {
                     //爬取章节列表
-                    Map<String, String> chapterMap = spider.getChapterList(url);
-                    for (String c : chapterMap.keySet()) {
-                        chapters.add(new Chapter(chapterMap.get(c), c));//添加解析出来的章节列表
-                    }
-                    return chapters;
+                    return spider.getChapterList(url);
                 }
             };
             new Thread(task).start();
@@ -237,10 +233,10 @@ public class AnalysisController implements Initializable {
 
     //初始化右键菜单
     private void initContextMenu() {
-        MenuItem selectAll = new MenuItem("全选",new ImageView("images/解析页/全选.jpg"));
-        MenuItem showContent = new MenuItem("查看内容",new ImageView("images/解析页/查看.jpg"));
-        MenuItem unSelectAll = new MenuItem("全不选",new ImageView("images/解析页/反选.jpg"));
-        MenuItem reName = new MenuItem("重新命名章节序号",new ImageView("images/书架/修改.jpg"));
+        MenuItem selectAll = new MenuItem("全选", new ImageView("images/解析页/全选.jpg"));
+        MenuItem showContent = new MenuItem("查看内容", new ImageView("images/解析页/查看.jpg"));
+        MenuItem unSelectAll = new MenuItem("全不选", new ImageView("images/解析页/反选.jpg"));
+        MenuItem reName = new MenuItem("重新命名章节序号", new ImageView("images/书架/修改.jpg"));
         contextMenu.getItems().addAll(showContent, new SeparatorMenuItem(), selectAll, unSelectAll, new SeparatorMenuItem(), reName);
     }
 

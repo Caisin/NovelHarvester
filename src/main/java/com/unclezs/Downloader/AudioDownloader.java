@@ -92,6 +92,7 @@ public class AudioDownloader implements DownloadAdapter {
                                 if (k == 9) {
                                     System.out.println("下载失败" + src);
                                 }
+                                Thread.sleep(config.getSleepTime());
                             }
                         }
                         overNum.add(j);

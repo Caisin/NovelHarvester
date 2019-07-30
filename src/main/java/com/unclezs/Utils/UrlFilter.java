@@ -15,11 +15,13 @@ public class UrlFilter {
         String baseUrl = getBaseUrl(urls);
         List<String> res=new ArrayList<>();
         res.addAll(urls);
+        BloomFileter filter = new BloomFileter(BloomFileter.MisjudgmentRate.HIGH, 10000, null);//布隆过滤器去重复url
         for(String url:urls){
-            if(!url.contains(baseUrl)){//如果不包含基准url就排除掉
+            if(filter.addIfNotExist(url)){//url已经存在过则直接移除
                 res.remove(url);
-            }
-            if((url.length()-1)<=baseUrl.length()){//如果长度小于基准url，那么肯定不是需要的小说正文链接，排除(减一去除url末尾的/)
+            }else if(!url.contains(baseUrl)){//如果不包含基准url就排除掉
+                res.remove(url);
+            }else if((url.length()-1)<=baseUrl.length()){//如果长度小于基准url，那么肯定不是需要的小说正文链接，排除(减一去除url末尾的/)
                 res.remove(url);
             }
         }

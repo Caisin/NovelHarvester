@@ -3,6 +3,7 @@ package com.unclezs.Crawl;
 
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.unclezs.Model.AnalysisConfig;
+import com.unclezs.Model.Chapter;
 import com.unclezs.Utils.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -56,13 +57,12 @@ public class NovelSpider {
      * @param url 章节目录地址
      * @return 章节列表
      */
-    public Map<String, String> getChapterList(String url) {
+    public List<Chapter> getChapterList(String url) {
         List<String> urls = new ArrayList<>();//存url
         Map<String, String> title = new HashMap<>();//存标题
-        Map<String, String> chapter = new LinkedHashMap<>();//存章节标题（有序）
+        List<Chapter> chapters=new ArrayList<>(500);
         String charset = "gbk";//默认编码
         try {
-            BloomFileter filter = new BloomFileter(BloomFileter.MisjudgmentRate.HIGH, 10000, null);//布隆过滤器去重复url
             //抓取源码自动识别网页编码
             String html = getHtml(url, charset);
             charset = HtmlUtil.getEncode(html);
@@ -77,7 +77,7 @@ public class NovelSpider {
             Elements aTags = document.select("a");
             for (Element e : aTags) {
                 String href = e.absUrl("href");
-                if (!"".equals(href.trim()) && !"".equals(e.text().trim()) && !filter.addIfNotExist(href)) {//剔除空标签、布隆去重
+                if (!"".equals(href.trim()) && !"".equals(e.text().trim())) {//剔除空标签
                     urls.add(href);
                     title.put(href, e.text().trim());
                 }
@@ -92,8 +92,7 @@ public class NovelSpider {
             }
             //预处理完后放入map集合
             for (String s : urls) {
-                String names = title.get(s);
-                chapter.put(s, names);
+                chapters.add(new Chapter(title.get(s),s));
             }
             //更新题目与小说名字
             novelTitle = getTitle(html);
@@ -101,7 +100,7 @@ public class NovelSpider {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return chapter;
+        return chapters;
     }
 
     /**
