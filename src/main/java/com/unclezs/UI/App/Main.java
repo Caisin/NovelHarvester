@@ -1,6 +1,7 @@
 package com.unclezs.UI.App;
 
 import com.unclezs.UI.Utils.DataManager;
+import com.unclezs.UI.Utils.HotKeyUtil;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -9,9 +10,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
 
+import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.Native;
 
 public class Main extends Application {
     public static void main(String[] args) {
@@ -20,21 +23,26 @@ public class Main extends Application {
 
     @Override
     public void start(Stage mainStage) throws IOException {
-        VBox root=new VBox();
-        DataManager.mainStage=mainStage;
-        DataManager.root=root;
+        VBox root = new VBox();
+        DataManager.mainStage = mainStage;
+        DataManager.root = root;
         mainStage.initStyle(StageStyle.TRANSPARENT);
-        mainStage.getIcons().add(new Image("images/图标/圆角图标.png"));
-        FXMLLoader loader=new FXMLLoader();
+        mainStage.getIcons().add(new Image("/images/图标/圆角图标.png"));
+        FXMLLoader loader = new FXMLLoader();
         loader.setLocation(Main.class.getResource("/fxml/index.fxml"));
         VBox box = loader.load();
         VBox.setVgrow(box, Priority.ALWAYS);
         root.getChildren().add(box);
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getResource("/css/reader.css").toExternalForm());
+        mainStage.setOnCloseRequest(e -> {
+            System.exit(0);
+        });
         mainStage.setTitle("Uncle小说");
         mainStage.setScene(scene);
         mainStage.sizeToScene();
         mainStage.show();
+        DataManager.currentStage = mainStage;
+        HotKeyUtil.bindListener();
     }
 }

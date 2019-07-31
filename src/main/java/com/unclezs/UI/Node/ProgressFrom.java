@@ -4,6 +4,8 @@ import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.UI.Utils.ToastUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.geometry.NodeOrientation;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Control;
@@ -13,6 +15,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -27,13 +30,15 @@ import java.util.TimerTask;
 public class ProgressFrom {
     private Stage dialogStage;
     private ProgressIndicator progressIndicator;
+    private Task task;
 
     /**
      * 加载条
      *
      * @param primaryStage 父舞台
      */
-    public ProgressFrom(Stage primaryStage) {
+    public ProgressFrom(Stage primaryStage,Task task) {
+        this.task=task;
         dialogStage = new Stage();
         progressIndicator = new ProgressIndicator();
         // 窗口父子关系
@@ -42,13 +47,18 @@ public class ProgressFrom {
         dialogStage.initStyle(StageStyle.TRANSPARENT);
         dialogStage.initModality(Modality.APPLICATION_MODAL);
         // progress bar
-        Label label = new Label("");
-        label.setTextFill(Color.BLUE);
+        Label label = new Label("取消");
+        label.setMinWidth(150);
+        label.setTextFill(Color.valueOf("#009688"));
+        label.setAlignment(Pos.CENTER);
+        label.setOnMouseClicked(e->{
+            cancelProgressBar();
+        });
         progressIndicator.setProgress(-1F);
         VBox vBox = new VBox();
         vBox.setSpacing(10);
         vBox.setBackground(Background.EMPTY);
-        vBox.getChildren().addAll(progressIndicator);
+        vBox.getChildren().addAll(progressIndicator,label);
         Scene scene = new Scene(vBox);
         scene.setFill(null);
         if (primaryStage.equals(DataManager.mainStage)) {
@@ -68,6 +78,7 @@ public class ProgressFrom {
 
     public void activateProgressBar() {
         dialogStage.show();
+        new Thread(task).start();
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
@@ -80,7 +91,7 @@ public class ProgressFrom {
             }
         };
         Timer timer = new Timer();
-        timer.schedule(task, 10000);
+        timer.schedule(task, 30000);
     }
 
     public Stage getDialogStage() {
@@ -88,6 +99,12 @@ public class ProgressFrom {
     }
 
     public void cancelProgressBar() {
+        dialogStage.close();
+        if(task.isRunning()){
+            task.cancel();
+        }
+    }
+    public void hidenProgressBar() {
         dialogStage.close();
     }
 }

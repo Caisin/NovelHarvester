@@ -44,6 +44,7 @@ public class Reader extends Application{
         scene.getStylesheets().add(getClass().getResource("/css/reader.css").toExternalForm());
         readerStage.setScene(scene);
         readerStage.show();
+        DataManager.currentStage=readerStage;
     }
 
 }

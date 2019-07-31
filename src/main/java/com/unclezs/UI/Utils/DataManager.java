@@ -15,6 +15,7 @@ import java.util.List;
  *@date 2019.06.21 11:32
  */
 public class DataManager {
+    public static Stage currentStage;//当前显示窗口
     public static Stage mainStage;//主舞台
     public static VBox root;//主窗口
     public static Pane content;//主窗口的内容面板

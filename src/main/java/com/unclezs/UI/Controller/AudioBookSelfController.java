@@ -200,15 +200,14 @@ public class AudioBookSelfController implements Initializable {
                 });
                 //复制音频链接
                 catalogMenu.getItems().get(1).setOnAction(ev -> {
-                    ProgressFrom pf = new ProgressFrom(DataManager.mainStage);
-                    pf.activateProgressBar();
                     Task<String> task = new Task<String>() {
                         @Override
                         protected String call() throws Exception {
                             return spider.getSrc(listUrlData.get(index));
                         }
                     };
-                    new Thread(task).start();
+                    ProgressFrom pf = new ProgressFrom(DataManager.mainStage,task);
+                    pf.activateProgressBar();
                     task.setOnSucceeded(event -> {
                         Clipboard clipboard = Clipboard.getSystemClipboard();
                         Map map = new HashMap();
@@ -256,8 +255,6 @@ public class AudioBookSelfController implements Initializable {
     //添加播放
     private void addPlay(final int index) {
         book.setLastIndex(index);//记录更改，关闭时保存进度
-        ProgressFrom pf = new ProgressFrom(DataManager.mainStage);
-        pf.activateProgressBar();
         Task<String> task = new Task<String>() {
             @Override
             protected String call() throws Exception {
@@ -275,7 +272,8 @@ public class AudioBookSelfController implements Initializable {
                 }
             }
         };
-        new Thread(task).start();
+        ProgressFrom pf = new ProgressFrom(DataManager.mainStage,task);
+        pf.activateProgressBar();
         //音频地址拿到之后开始播放
         task.setOnSucceeded(e -> {
             if (task.getValue().equals("")) {
@@ -400,7 +398,6 @@ public class AudioBookSelfController implements Initializable {
 
     //保存信息入库
     public static void saveInfo() {
-//        new Thread(() -> {
         System.out.println(book);
         if (book == null) {
             return;
@@ -409,7 +406,6 @@ public class AudioBookSelfController implements Initializable {
         AudioBookMapper mapper = MybatisUtils.getMapper(AudioBookMapper.class);
         mapper.updateBook(book);
         MybatisUtils.getCurrentSqlSession().close();
-//        }).start();
     }
 
     //加载书架的书

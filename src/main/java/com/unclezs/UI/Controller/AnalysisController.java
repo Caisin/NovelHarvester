@@ -212,11 +212,11 @@ public class AnalysisController implements Initializable {
                 @Override
                 protected List<Chapter> call() throws Exception {
                     //爬取章节列表
-                    return spider.getChapterList(url);
+                    chapters=spider.getChapterList(url);
+                    return chapters;
                 }
             };
-            new Thread(task).start();
-            ProgressFrom pf = new ProgressFrom(DataManager.mainStage);
+            ProgressFrom pf = new ProgressFrom(DataManager.mainStage,task);
             task.setOnSucceeded(e -> {
                 //加入listView
                 for (Chapter c : task.getValue()) {
@@ -286,8 +286,7 @@ public class AnalysisController implements Initializable {
                 return null;
             }
         };
-        new Thread(task).start();
-        ProgressFrom pf = new ProgressFrom(DataManager.mainStage);
+        ProgressFrom pf = new ProgressFrom(DataManager.mainStage,task);
         task.setOnSucceeded(e -> {
             pf.cancelProgressBar();
             ToastUtil.toast("添加成功!");

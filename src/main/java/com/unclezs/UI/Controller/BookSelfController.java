@@ -161,8 +161,7 @@ public class BookSelfController implements Initializable {
                 return null;
             }
         };
-        new Thread(task).start();
-        ProgressFrom pf = new ProgressFrom(DataManager.mainStage);
+        ProgressFrom pf = new ProgressFrom(DataManager.mainStage,task);
         task.setOnSucceeded(e -> {
             pf.cancelProgressBar();
             Platform.runLater(() -> reloadBookMark());
@@ -276,8 +275,7 @@ public class BookSelfController implements Initializable {
                 return null;
             }
         };
-        new Thread(openBook).start();
-        ProgressFrom pf = new ProgressFrom(DataManager.mainStage);
+        ProgressFrom pf = new ProgressFrom(DataManager.mainStage,openBook);
         openBook.setOnSucceeded(e -> {
             try {
                 pf.cancelProgressBar();

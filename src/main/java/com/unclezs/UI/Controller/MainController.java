@@ -1,7 +1,5 @@
 package com.unclezs.UI.Controller;
 
-import com.unclezs.Mapper.SettingMapper;
-import com.unclezs.Model.DownloadConfig;
 import com.unclezs.UI.Node.ProgressFrom;
 import com.unclezs.UI.Utils.ContentUtil;
 import com.unclezs.UI.Utils.DataManager;
@@ -17,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -136,11 +135,6 @@ public class MainController implements Initializable {
 
     //异步加载全部页面（降低点击延迟）
     private void loadAll() {
-//        try {
-//            analysisPane = new FXMLLoader(getClass().getResource("/fxml/analysis.fxml")).load();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
         Platform.runLater(() -> {
             new Thread(() -> {
                 try {
@@ -170,11 +164,10 @@ public class MainController implements Initializable {
                         return null;
                     }
                 };
-                new Thread(task).start();
-                ProgressFrom pf = new ProgressFrom(DataManager.mainStage);
+                ProgressFrom pf = new ProgressFrom(DataManager.mainStage,task);
                 task.setOnSucceeded(e -> {//完成后设置内容
-                    pf.cancelProgressBar();
                     setContent(bookSelf);
+                    pf.cancelProgressBar();
                     return;
                 });
                 pf.activateProgressBar();

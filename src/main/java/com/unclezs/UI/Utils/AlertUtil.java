@@ -1,8 +1,13 @@
 package com.unclezs.UI.Utils;
 
 import javafx.scene.control.Alert;
+import javafx.scene.control.Tooltip;
 import javafx.stage.Modality;
+import javafx.util.Duration;
 import sun.nio.cs.ext.MS874;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 
 /*
  *@author unclezs.com
@@ -18,5 +23,21 @@ public class AlertUtil {
         alert.getDialogPane().setStyle("-fx-graphic: url('images/1.png');");
         alert.setTitle(title);
         return alert;
+    }
+
+    //设置时间
+    public static Tooltip setTipTime(Tooltip tooltip){
+        try {
+            Class tipClass = tooltip.getClass();
+            Field f = tipClass.getDeclaredField("BEHAVIOR");
+            f.setAccessible(true);
+            Class behavior = Class.forName("javafx.scene.control.Tooltip$TooltipBehavior");
+            Constructor constructor = behavior.getDeclaredConstructor(Duration.class, Duration.class, Duration.class, boolean.class);
+            constructor.setAccessible(true);
+            f.set(behavior, constructor.newInstance(new Duration(100), new Duration(5000), new Duration(100), false));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return tooltip;
     }
 }

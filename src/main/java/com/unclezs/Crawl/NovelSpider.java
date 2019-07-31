@@ -60,7 +60,7 @@ public class NovelSpider {
     public List<Chapter> getChapterList(String url) {
         List<String> urls = new ArrayList<>();//存url
         Map<String, String> title = new HashMap<>();//存标题
-        List<Chapter> chapters=new ArrayList<>(500);
+        List<Chapter> chapters = new ArrayList<>(500);
         String charset = "gbk";//默认编码
         try {
             //抓取源码自动识别网页编码
@@ -92,7 +92,7 @@ public class NovelSpider {
             }
             //预处理完后放入map集合
             for (String s : urls) {
-                chapters.add(new Chapter(title.get(s),s));
+                chapters.add(new Chapter(title.get(s), s));
             }
             //更新题目与小说名字
             novelTitle = getTitle(html);
@@ -150,7 +150,7 @@ public class NovelSpider {
                 whitelist.addTags("p", "br", "div");
                 String parse = Jsoup.clean(html, whitelist);
                 parse = parse.replaceAll("&[#\\w]{3,6}[;:]{0,1}", "{空格}");
-                parse = parse.replaceAll("(<br/>|<br>|<br />)", "");
+                parse = parse.replaceAll("(<br/>|<br>|<br />)", "{换行}");
                 parse = parse.replaceAll("(\n|\r\n|<p>)", "{换行}");
                 Document document = Jsoup.parse(parse);
                 Elements divs = document.select("div");
@@ -163,14 +163,15 @@ public class NovelSpider {
                         maxLen = ownText.length();
                     }
                 }
-                content.append(text.replace("{换行}", "\r\n").replace("{空格}", " "));
+                content.append(text.replace("{换行}{换行}", "\r\n").replace("{换行}", "\r\n").replace("{空格}", " "));
                 break;
         }
         //缩进处理
-        String[] strings = content.toString().split("\n");
+        String[] strings = content.toString().split("[\r]{0,1}\n");
         content = new StringBuffer();
         for (String s : strings) {
-            content.append("    ").append(s.trim()).append("\n");
+            if (s.trim().length() > 0)
+                content.append("    ").append(s.trim()).append("\r\n\r\n");
         }
         //转码
         String text = content.toString();

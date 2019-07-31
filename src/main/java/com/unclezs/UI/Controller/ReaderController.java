@@ -10,6 +10,7 @@ import com.unclezs.UI.App.Reader;
 import com.unclezs.UI.Node.ProgressFrom;
 import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.UI.Utils.LayoutUitl;
+import com.unclezs.UI.Utils.TrayUtil;
 import com.unclezs.Utils.MybatisUtils;
 import com.unclezs.Utils.VoiceUtil;
 import javafx.application.Platform;
@@ -143,6 +144,7 @@ public class ReaderController implements Initializable {
         });
         //窗口关闭事件
         DataManager.readerStage.setOnCloseRequest(e -> {
+            DataManager.currentStage = DataManager.mainStage;
             new Thread(() -> {
                 //关闭语音
                 if (voiceUtil != null) voiceUtil.stop();
@@ -165,15 +167,24 @@ public class ReaderController implements Initializable {
 
         //上下文菜单
         ContextMenu contextMenu = new ContextMenu();
-        MenuItem preChapter = new MenuItem("上一章", new ImageView("images/设置页/上一章.jpg"));
-        MenuItem nextChapter = new MenuItem("下一章", new ImageView("images/设置页/下一章.jpg"));
-        MenuItem set = new MenuItem("设置", new ImageView("images/设置页/设置.jpg"));
+        MenuItem preChapter = new MenuItem("上一章节", new ImageView("images/设置页/上一章.jpg"));
+        MenuItem nextChapter = new MenuItem("下一章节", new ImageView("images/设置页/下一章.jpg"));
+        MenuItem set = new MenuItem("设置面板", new ImageView("images/设置页/设置.jpg"));
         MenuItem winTop = new MenuItem("窗口置顶", new ImageView("images/设置页/置顶.png"));
         MenuItem winHide = new MenuItem(itemText, new ImageView("images/设置页/隐藏.png"));
-        contextMenu.getItems().addAll(nextChapter, preChapter, new SeparatorMenuItem(), set, new SeparatorMenuItem(), winTop, winHide);
+        MenuItem minTray = new MenuItem("最小化到托盘(Alt+U)", new ImageView("images/设置页/最小化到托盘.png"));
+        contextMenu.getItems().addAll(nextChapter, preChapter, new SeparatorMenuItem(), set, new SeparatorMenuItem(), winTop, winHide, minTray);
         //设置界面
         set.setOnAction(eee -> {
             setPane.setVisible(true);
+        });
+        //最小化托盘
+        minTray.setOnAction(e -> {
+            try {
+                TrayUtil.tray();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         });
         //窗口置顶
         winTop.setOnAction(e -> {
@@ -190,6 +201,8 @@ public class ReaderController implements Initializable {
         nextChapter.setOnAction(e -> loadChapter(++index));
         //窗口隐藏
         winHide.setOnAction(e -> {
+            DataManager.book.setCpage(index);
+            DataManager.book.setvValue(content.getScrollTop());
             DataManager.readerStage.close();
             double x = DataManager.readerStage.getX();
             double y = DataManager.readerStage.getY();
@@ -282,8 +295,7 @@ public class ReaderController implements Initializable {
                         return null;
                     }
                 };
-                new Thread(task).start();
-                ProgressFrom pf = new ProgressFrom(DataManager.readerStage);
+                ProgressFrom pf = new ProgressFrom(DataManager.readerStage,task);
                 task.setOnSucceeded(e -> {
                     pf.cancelProgressBar();
                     this.content.setText(text);

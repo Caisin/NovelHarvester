@@ -49,8 +49,10 @@ public class SearchController implements Initializable {
     //成员
     String[] sites = {"bezw", "bxwx", "hxj", "ldks", "snwx", "xsyd", "yzsk"};//网站列表
     private int overCount = 0;
-    private NovelSpider spider=new NovelSpider(null);
-    private ContextMenu menu=new ContextMenu();
+    private NovelSpider spider = new NovelSpider(null);
+    private ContextMenu menu = new ContextMenu();
+    ProgressFrom pfs = null;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         init();
@@ -60,70 +62,71 @@ public class SearchController implements Initializable {
         autoSize();//自适应
         initMenu();//初始化菜单
         //点击搜索
-        search.setOnMouseClicked(e ->searchNovelByName());
+        search.setOnMouseClicked(e -> searchNovelByName());
         //列表菜单
         list.setOnMouseClicked(e -> {
-            if(list.getItems().size()==0){
+            if (list.getItems().size() == 0) {
                 return;
             }
             int index = list.getSelectionModel().getSelectedIndex();
-            if (e.getButton()==MouseButton.PRIMARY){//单机打开
+            if (e.getButton() == MouseButton.PRIMARY) {//单机打开
                 copyLink(index);
                 ContentUtil.setContent("/fxml/analysis.fxml");
-            }else if(e.getButton()== MouseButton.SECONDARY){//右键菜单
-               //右键菜单跟随鼠标
-               menu.setX(e.getScreenX());
-               menu.setY(e.getScreenY());
-               //获取选中索引
-               MenuItem copy = menu.getItems().get(1);//复制链接
-               MenuItem analysis = menu.getItems().get(0);//解析书籍
-               MenuItem browse = menu.getItems().get(2);//浏览器打开
-               copy.setOnAction(ev -> {
-                   copyLink(index);
-               });
-               analysis.setOnAction(ev->{
-                   copyLink(index);
-                   ContentUtil.setContent("/fxml/analysis.fxml");
-               });
-               browse.setOnAction(ev->{
-                   try {
-                       Desktop.getDesktop().browse(new URI(((SearchNode) list.getItems().get(index)).getInfo().getUrl()));
-                   } catch (Exception ex) {
-                       ex.printStackTrace();
-                   }
-               });
-               menu.show(DataManager.mainStage);
-           }
+            } else if (e.getButton() == MouseButton.SECONDARY) {//右键菜单
+                //右键菜单跟随鼠标
+                menu.setX(e.getScreenX());
+                menu.setY(e.getScreenY());
+                //获取选中索引
+                MenuItem copy = menu.getItems().get(1);//复制链接
+                MenuItem analysis = menu.getItems().get(0);//解析书籍
+                MenuItem browse = menu.getItems().get(2);//浏览器打开
+                copy.setOnAction(ev -> {
+                    copyLink(index);
+                });
+                analysis.setOnAction(ev -> {
+                    copyLink(index);
+                    ContentUtil.setContent("/fxml/analysis.fxml");
+                });
+                browse.setOnAction(ev -> {
+                    try {
+                        Desktop.getDesktop().browse(new URI(((SearchNode) list.getItems().get(index)).getInfo().getUrl()));
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                });
+                menu.show(DataManager.mainStage);
+            }
         });
         text.setOnKeyPressed(event -> {
-            if (event.getCode()== KeyCode.ENTER){
+            if (event.getCode() == KeyCode.ENTER) {
                 searchNovelByName();
             }
         });
     }
+
     //初始化菜单
-    void initMenu(){
+    void initMenu() {
         MenuItem copy = new MenuItem("复制链接");
         MenuItem analysis = new MenuItem("解析此书");
         MenuItem browse = new MenuItem("浏览器打开");
         copy.setGraphic(new ImageView("images/搜索页/复制链接.jpg"));
         analysis.setGraphic(new ImageView("images/搜索页/解析此书.jpg"));
         browse.setGraphic(new ImageView("images/搜索页/在浏览器打开.jpg"));
-        menu.getItems().addAll(analysis,copy,browse);
+        menu.getItems().addAll(analysis, copy, browse);
     }
+
     //自适应居中
     private void autoSize() {
         searchPane.layoutXProperty().bind(searchRoot.widthProperty().divide(2).subtract(searchPane.widthProperty().divide(2)));
         list.prefWidthProperty().bind(searchRoot.widthProperty());
         list.prefHeightProperty().bind(searchRoot.heightProperty().subtract(73));
     }
+
     //根据名字搜索小说
-    private void searchNovelByName(){
+    private void searchNovelByName() {
         //防止多次点击
         search.setDisable(true);
         //开启Loading...
-        ProgressFrom pf = new ProgressFrom(DataManager.mainStage);
-        pf.activateProgressBar();
         overCount = 0;//完成线程数量清零
         list.getItems().clear();//上次搜索结果清空
         String name = this.text.getText();//小说名字获取
@@ -142,7 +145,12 @@ public class SearchController implements Initializable {
                     return nodeList;
                 }
             };
-            new Thread(task).start();
+            if (index == 0) {
+                pfs = new ProgressFrom(DataManager.mainStage, task);
+                pfs.activateProgressBar();
+            }else {
+                new Thread(task).start();
+            }
             task.setOnSucceeded(event -> {
                 list.getItems().addAll(task.getValue());
                 overCount++;
@@ -152,19 +160,22 @@ public class SearchController implements Initializable {
                         Label label = new Label("哎！没有找到这本书，可以试试目录解析！");
                         label.setFont(new Font(16));
                         list.getItems().add(label);
-                    }else {
+                    } else {
                         ToastUtil.toast("搜索完毕");
                     }
                     search.setDisable(false);//释放搜索按钮
                 }
-                //取消Loading
-                pf.cancelProgressBar();
+                if(index==0){
+                    //取消Loading
+                    pfs.hidenProgressBar();
+                }
             });
         }
 
     }
+
     //url到剪贴板
-    private void copyLink(int index){
+    private void copyLink(int index) {
         Clipboard cb = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
         content.put(DataFormat.PLAIN_TEXT, ((SearchNode) list.getItems().get(index)).getInfo().getUrl());

@@ -1,15 +1,17 @@
 package com.unclezs.UI.Controller;
 
+import com.unclezs.UI.Utils.AlertUtil;
 import com.unclezs.UI.Utils.DataManager;
+import com.unclezs.UI.Utils.TrayUtil;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 
@@ -27,13 +29,11 @@ public class HeaderController implements Initializable {
     @FXML
     BorderPane header;//头部容器
     @FXML
-    Label setting,max,min,exit;
-    @FXML
-    Pane testPane;
+    Label setting, max, min, exit, minTray;
 
     /***********成员************/
     private boolean isFullScreen;//全屏
-    private double x,y,width,height;//
+    private double x, y, width, height;//
     private boolean isRight;// 是否处于右边界调整窗口状态
     private boolean isBottomRight;// 是否处于右下角调整窗口状态
     private boolean isBottom;// 是否处于下边界调整窗口状态
@@ -42,39 +42,39 @@ public class HeaderController implements Initializable {
     private double MIN_HEIGHT = 618;
     private double xOffset = 0, yOffset = 0;//自定义dialog移动横纵坐标
     VBox box;//设置面板
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         init();
-        exit.setOnMouseClicked(e->exit());
-        max.setOnMouseClicked(e->max());
-        min.setOnMouseClicked(e->min());
-        setting.setOnMouseClicked(e->setting());
+        initEventHandler();
     }
+
     //最大化
-    void max(){
+    void max() {
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-        isFullScreen=!isFullScreen;//更改全屏状态
-        if(isFullScreen){//显示全屏
-            reSizeAndLocation(bounds.getMinX(),bounds.getMinY(),bounds.getWidth(),bounds.getHeight());
-        }else {//缩放回以前尺寸
-            reSizeAndLocation(x,y,width,height);
+        isFullScreen = !isFullScreen;//更改全屏状态
+        if (isFullScreen) {//显示全屏
+            reSizeAndLocation(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+        } else {//缩放回以前尺寸
+            reSizeAndLocation(x, y, width, height);
         }
     }
+
     //最小化
-    void min(){
+    void min() {
         DataManager.mainStage.setIconified(true);
     }
+
     //设置
-    void setting(){
+    void setting() {
         try {
-            if(box==null){
-                box =new FXMLLoader(getClass().getResource("/fxml/setting_header.fxml")).load();
+            if (box == null) {
+                box = new FXMLLoader(getClass().getResource("/fxml/setting_header.fxml")).load();
                 box.layoutXProperty().bind(DataManager.mainStage.widthProperty().subtract(box.widthProperty()).subtract(230));
                 box.layoutYProperty().bind(DataManager.content.layoutYProperty());
                 DataManager.content.getChildren().add(box);
-            }
-            else {
-                if(!DataManager.content.getChildren().contains(box)){
+            } else {
+                if (!DataManager.content.getChildren().contains(box)) {
                     box.setVisible(false);
                     DataManager.content.getChildren().add(box);
                 }
@@ -85,37 +85,38 @@ public class HeaderController implements Initializable {
             e.printStackTrace();
         }
     }
+
     //退出
-    void exit(){
-        DataManager.mainStage.close();
+    void exit() {
+        DataManager.mainStage.hide();
         AudioBookSelfController.saveInfo();
         System.exit(0);
     }
+
     //初始化
-    void init(){
+    void init() {
         //主窗口大小改变事件
-        DataManager.mainStage.xProperty().addListener((observable,oldValue,newValue)->{
+        DataManager.mainStage.xProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !isFullScreen) {
-                x=newValue.doubleValue();
+                x = newValue.doubleValue();
             }
         });
-        DataManager.mainStage.yProperty().addListener((observable,oldValue,newValue)->{
+        DataManager.mainStage.yProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !isFullScreen) {
-                y=newValue.doubleValue();
+                y = newValue.doubleValue();
             }
         });
-        DataManager.mainStage.widthProperty().addListener((observable,oldValue,newValue)->{
+        DataManager.mainStage.widthProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !isFullScreen) {
-                width=newValue.doubleValue();
+                width = newValue.doubleValue();
             }
         });
-        DataManager.mainStage.heightProperty().addListener((observable,oldValue,newValue)->{
+        DataManager.mainStage.heightProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !isFullScreen) {
-                height=newValue.doubleValue();
+                height = newValue.doubleValue();
             }
         });
         //拖动事件
-
         DataManager.root.setOnMouseMoved((MouseEvent event) -> {
             event.consume();
             double x = event.getSceneX();
@@ -148,7 +149,7 @@ public class HeaderController implements Initializable {
 
             //根据鼠标的横纵坐标移动dialog位置
             event.consume();
-            if (yOffset != 0 ) {
+            if (yOffset != 0) {
                 DataManager.mainStage.setX(event.getScreenX() - xOffset);
                 if (event.getScreenY() - yOffset < 0) {
                     DataManager.mainStage.setY(0);
@@ -195,10 +196,32 @@ public class HeaderController implements Initializable {
         });
 
     }
-    private void reSizeAndLocation(double x,double y,double width,double height){
-            DataManager.mainStage.setX(x);
-            DataManager.mainStage.setY(y);
-            DataManager.mainStage.setWidth(width);
-            DataManager.mainStage.setHeight(height);
+
+    void initEventHandler() {
+        exit.setOnMouseClicked(e -> exit());
+        max.setOnMouseClicked(e -> max());
+        min.setOnMouseClicked(e -> min());
+        setting.setOnMouseClicked(e -> setting());
+        minTray.setOnMouseClicked(e-> {
+            try {
+                TrayUtil.tray();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+        min.setTooltip(AlertUtil.setTipTime(new Tooltip("最小化")));
+        max.setTooltip(AlertUtil.setTipTime(new Tooltip("最大化")));
+        minTray.setTooltip(AlertUtil.setTipTime(new Tooltip("最小化到托盘(Alt+U)")));
+        exit.setTooltip(AlertUtil.setTipTime(new Tooltip("退出")));
+        setting.setTooltip(AlertUtil.setTipTime(new Tooltip("设置")));
     }
+
+    private void reSizeAndLocation(double x, double y, double width, double height) {
+        DataManager.mainStage.setX(x);
+        DataManager.mainStage.setY(y);
+        DataManager.mainStage.setWidth(width);
+        DataManager.mainStage.setHeight(height);
+    }
+
+
 }
