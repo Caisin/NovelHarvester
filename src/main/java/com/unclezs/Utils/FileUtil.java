@@ -6,7 +6,6 @@ import info.monitorenter.cpdetector.io.JChardetFacade;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -142,19 +141,27 @@ public class FileUtil {
     public static String mergeFiles(String name, String path, String tempPath, String code) {
         // 过滤出分块文件
         File temPath = new File(tempPath);//分块目录
-        File[] files = temPath.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                if (pathname.getName().split("\\-").length < 2)
-                    return false;
-                else {
-                    return true;
-                }
+        File[] files = temPath.listFiles(pathname -> {
+            if (pathname.getName().split("\\-").length < 2)
+                return false;
+            else {
+                return true;
             }
         });
+        String fp = path + "/" + name.replaceAll("[^\\u4E00-\\u9FFF]", "");
+        int x = 1;
+        while (new File(fp + ".txt").exists()) {
+            if (fp.matches(".+?[(].+?[)]")) {
+                fp=fp.substring(0,fp.length()-3)+"(" + x + ")";
+            } else {
+                fp = fp + "(" + x + ")";
+            }
+            x++;
+        }
+        fp = fp + ".txt";
         Arrays.sort(files, new FileSort());
         try (PrintWriter out = new PrintWriter(
-                new OutputStreamWriter(new FileOutputStream(new File(path + "/" + name.replaceAll("[^\\u4E00-\\u9FFF]", "") + ".txt")), code));) {
+                new OutputStreamWriter(new FileOutputStream(new File(fp)), code))) {
             for (File file : files) {
                 System.out.println(file.getName());
                 BufferedReader buf = new BufferedReader(

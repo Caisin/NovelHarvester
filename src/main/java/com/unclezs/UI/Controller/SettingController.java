@@ -6,16 +6,13 @@ import com.jfoenix.controls.JFXToggleButton;
 import com.unclezs.Mapper.SettingMapper;
 import com.unclezs.Model.DownloadConfig;
 import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.UI.Utils.ToastUtil;
+import com.unclezs.Utils.ConfUtil;
 import com.unclezs.Utils.MybatisUtils;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleGroup;
 import javafx.stage.DirectoryChooser;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.session.SqlSession;
 
 import java.io.File;
 import java.net.URL;
@@ -28,7 +25,7 @@ import java.util.ResourceBundle;
  */
 public class SettingController implements Initializable {
     @FXML
-    JFXToggleButton merge;
+    JFXToggleButton merge, autoImport;
     @FXML
     JFXComboBox<Integer> chapterNum, delay;
     @FXML
@@ -66,6 +63,7 @@ public class SettingController implements Initializable {
         chapterNum.setValue(config.getPerThreadDownNum());
         delay.setValue(config.getSleepTime() / 1000);
         pathLabel.setText(config.getPath());
+        autoImport.setSelected(Boolean.valueOf(ConfUtil.get(ConfUtil.USE_ANALYSIS_PASTE)));
         switch (config.getFormat()) {
             case "epub":
                 depub.setSelected(true);
@@ -116,6 +114,9 @@ public class SettingController implements Initializable {
         });
         depub.selectedProperty().addListener(e -> {
             config.setFormat("epub");
+        });
+        autoImport.selectedProperty().addListener(e->{
+            ConfUtil.set(ConfUtil.USE_ANALYSIS_PASTE,autoImport.isSelected()+"");
         });
     }
 

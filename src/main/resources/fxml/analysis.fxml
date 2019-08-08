@@ -14,20 +14,20 @@
       <Label fx:id="menu" layoutX="725.0" layoutY="14.0" prefHeight="32.0" prefWidth="32.0" style="-fx-background-image: url('images/解析页/菜单.jpg');" />
       <JFXTextArea fx:id="content" layoutX="405.0" layoutY="83.0" prefHeight="483.0" prefWidth="369.0" promptText="解析正文显示区域" wrapText="true" />
       <JFXListView fx:id="list" layoutX="2.0" layoutY="83.0" prefHeight="483.0" prefWidth="394.0" />
-      <Pane fx:id="doPane" layoutX="199.0" layoutY="14.0" prefHeight="65.0" prefWidth="515.0">
+      <Pane fx:id="doPane" layoutX="90.0" layoutY="14.0" prefHeight="65.0" prefWidth="624.0">
          <children>
-            <JFXTextField fx:id="text" labelFloat="true" layoutX="7.0" layoutY="25.0" prefHeight="30.0" prefWidth="204.0" promptText="请输入目录地址" />
-            <JFXButton fx:id="analysisBtn" buttonType="RAISED" layoutX="244.0" layoutY="24.0" prefHeight="30.0" prefWidth="75.0" style="-fx-background-color: #1E9FFF;" text="解析目录" textFill="WHITE">
+            <JFXTextField fx:id="text" labelFloat="true" layoutX="7.0" layoutY="25.0" prefHeight="30.0" prefWidth="349.0" promptText="请输入目录地址" />
+            <JFXButton fx:id="analysisBtn" buttonType="RAISED" layoutX="365.0" layoutY="25.0" prefHeight="30.0" prefWidth="75.0" style="-fx-background-color: #1E9FFF;" text="解析目录" textFill="WHITE">
                <font>
                   <Font size="13.0" />
                </font>
             </JFXButton>
-            <JFXButton fx:id="addToMark" buttonType="RAISED" layoutX="326.0" layoutY="24.0" prefHeight="30.0" prefWidth="75.0" style="-fx-background-color: #1E9FFF;" text="加入书架" textFill="WHITE">
+            <JFXButton fx:id="addToMark" buttonType="RAISED" layoutX="447.0" layoutY="25.0" prefHeight="30.0" prefWidth="75.0" style="-fx-background-color: #1E9FFF;" text="加入书架" textFill="WHITE">
                <font>
                   <Font size="13.0" />
                </font>
             </JFXButton>
-            <JFXButton fx:id="downloadIt" buttonType="RAISED" layoutX="407.0" layoutY="24.0" prefHeight="30.0" prefWidth="75.0" style="-fx-background-color: #1E9FFF;" text="下载本书" textFill="WHITE">
+            <JFXButton fx:id="downloadIt" buttonType="RAISED" layoutX="528.0" layoutY="25.0" prefHeight="30.0" prefWidth="75.0" style="-fx-background-color: #1E9FFF;" text="下载本书" textFill="WHITE">
                <font>
                   <Font size="13.0" />
                </font>

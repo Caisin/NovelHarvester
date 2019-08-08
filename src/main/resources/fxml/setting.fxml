@@ -8,21 +8,21 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="319.0" prefWidth="257.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unclezs.UI.Controller.SettingController">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="361.0" prefWidth="257.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unclezs.UI.Controller.SettingController">
    <children>
-      <Label fx:id="pathLabel" layoutX="12.0" layoutY="239.0" prefHeight="24.0" prefWidth="175.0" style="-fx-background-color: rgb(189,189,189);" text="D:\\" />
-      <Label fx:id="changePath" alignment="CENTER" layoutX="194.0" layoutY="239.0" prefHeight="24.0" prefWidth="51.0" style="-fx-background-color: #1E9FFF; -fx-background-radius: 5; -fx-border-radius: 5;" text="浏览" textFill="WHITE" />
-      <Text layoutX="12.0" layoutY="226.0" strokeType="OUTSIDE" strokeWidth="0.0" text="下载位置" />
+      <Label fx:id="pathLabel" layoutX="12.0" layoutY="286.0" prefHeight="24.0" prefWidth="175.0" style="-fx-background-color: rgb(189,189,189);" text="D:\\" />
+      <Label fx:id="changePath" alignment="CENTER" layoutX="194.0" layoutY="286.0" prefHeight="24.0" prefWidth="51.0" style="-fx-background-color: #1E9FFF; -fx-background-radius: 5; -fx-border-radius: 5;" text="浏览" textFill="WHITE" />
+      <Text layoutX="12.0" layoutY="273.0" strokeType="OUTSIDE" strokeWidth="0.0" text="下载位置" />
       <JFXToggleButton fx:id="merge" contentDisplay="RIGHT" layoutY="52.0" prefHeight="58.0" prefWidth="257.0" selected="true" text="下载完成后合并文件                   " textAlignment="JUSTIFY" toggleLineColor="#becdbe" wrapText="true" />
       <Pane layoutY="102.0" prefHeight="1.0" prefWidth="257.0" style="-fx-background-color: rgb(189,189,189);" />
-      <JFXComboBox fx:id="chapterNum" layoutX="168.0" layoutY="117.0" prefHeight="23.0" prefWidth="75.0" promptText="1000" />
-      <Text layoutX="14.0" layoutY="135.0" strokeType="OUTSIDE" strokeWidth="0.0" text="每个线程下载章节数量" />
-      <Pane layoutY="152.0" prefHeight="1.0" prefWidth="257.0" style="-fx-background-color: rgb(189,189,189);" />
-      <Text layoutX="14.0" layoutY="185.0" strokeType="OUTSIDE" strokeWidth="0.0" text="每个章节下载延迟秒数" />
-      <JFXComboBox fx:id="delay" layoutX="168.0" layoutY="167.0" prefHeight="23.0" prefWidth="75.0" promptText="1000ms" />
+      <JFXComboBox fx:id="chapterNum" layoutX="168.0" layoutY="162.0" prefHeight="23.0" prefWidth="75.0" promptText="1000" />
+      <Text fontSmoothingType="LCD" layoutX="14.0" layoutY="182.0" strokeType="OUTSIDE" strokeWidth="0.0" text="每个线程下载章节数量" />
       <Pane layoutY="202.0" prefHeight="1.0" prefWidth="257.0" style="-fx-background-color: rgb(189,189,189);" />
-      <Pane layoutY="276.0" prefHeight="1.0" prefWidth="257.0" style="-fx-background-color: rgb(189,189,189);" />
-      <Text fill="#246526" layoutX="14.0" layoutY="302.0" strokeType="OUTSIDE" strokeWidth="0.0" text="合理配置，防止被封IP而下载不完整" textAlignment="CENTER" wrappingWidth="229.869140625" />
+      <Text fontSmoothingType="LCD" layoutX="14.0" layoutY="233.0" strokeType="OUTSIDE" strokeWidth="0.0" text="每个章节下载延迟秒数" />
+      <JFXComboBox fx:id="delay" layoutX="168.0" layoutY="215.0" prefHeight="23.0" prefWidth="75.0" promptText="1000ms" />
+      <Pane layoutY="252.0" prefHeight="1.0" prefWidth="257.0" style="-fx-background-color: rgb(189,189,189);" />
+      <Pane layoutY="320.0" prefHeight="1.0" prefWidth="257.0" style="-fx-background-color: rgb(189,189,189);" />
+      <Text fill="#246526" layoutX="14.0" layoutY="347.0" strokeType="OUTSIDE" strokeWidth="0.0" text="合理配置，防止被封IP而下载不完整" textAlignment="CENTER" wrappingWidth="229.869140625" />
       <Pane layoutY="52.0" prefHeight="1.0" prefWidth="257.0" style="-fx-background-color: rgb(189,189,189);" />
       <JFXRadioButton fx:id="dmobi" layoutX="12.0" layoutY="23.0" text="MOBI">
          <font>
@@ -39,5 +39,7 @@
             <Font size="13.0" />
          </font>
       </JFXRadioButton>
+      <Pane layoutY="152.0" prefHeight="1.0" prefWidth="257.0" style="-fx-background-color: rgb(189,189,189);" />
+      <JFXToggleButton fx:id="autoImport" contentDisplay="RIGHT" layoutY="102.0" prefHeight="58.0" prefWidth="257.0" selected="true" text="自动读取剪贴版链接(重启生效)" textAlignment="JUSTIFY" toggleLineColor="#becdbe" wrapText="true" />
    </children>
 </Pane>

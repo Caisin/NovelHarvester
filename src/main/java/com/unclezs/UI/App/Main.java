@@ -10,10 +10,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.jnativehook.GlobalScreen;
-import org.jnativehook.NativeHookException;
 
-import java.io.File;
 import java.io.IOException;
 
 public class Main extends Application {
@@ -35,14 +32,12 @@ public class Main extends Application {
         root.getChildren().add(box);
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getResource("/css/reader.css").toExternalForm());
-        mainStage.setOnCloseRequest(e -> {
-            System.exit(0);
-        });
+        mainStage.setOnCloseRequest(e -> System.exit(0));
         mainStage.setTitle("Uncle小说");
         mainStage.setScene(scene);
         mainStage.sizeToScene();
         mainStage.show();
         DataManager.currentStage = mainStage;
-        HotKeyUtil.bindListener();
+        new Thread(()->HotKeyUtil.bindListener()).start();
     }
 }

@@ -1,11 +1,5 @@
 package com.unclezs.Utils;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.util.Cookie;
-import com.luhuiguo.chinese.ChineseUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpRequestRetryHandler;
@@ -17,12 +11,9 @@ import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 
-import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -72,6 +63,32 @@ public class HtmlUtil {
         return code.replace("\"", "").trim();
     }
 
+//    public static String getHtml(String url, String charset, String cookies, String ua) {
+//        StringBuffer content = new StringBuffer();
+//        try {
+//            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+//            if (cookies != null && !"".equals(cookies))
+//                connection.addRequestProperty("Cookie", cookies);
+//            if (ua != null && !"".equals(ua)) {
+//                connection.addRequestProperty("User-Agent", ua);
+//            } else {
+//                connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
+//            }
+//            connection.setReadTimeout(10000);
+//            connection.setConnectTimeout(10000);
+//            connection.setInstanceFollowRedirects(true);
+//            BufferedReader br=new BufferedReader(new InputStreamReader(connection.getInputStream(),charset));
+//            String s;
+//            while ((s=br.readLine())!=null){
+//                content.append(s);
+//            }
+//        } catch (Exception e) {
+//            System.out.println("源码抓取失败 " + url);
+//        }
+//        return content.toString();
+//
+//    }
+
     public static String getHtml(String url, String charset, String cookies, String ua) {
         String content = null;
         //重试5次
@@ -104,7 +121,7 @@ public class HtmlUtil {
             }
             content = new String(bytes, charset);
         } catch (Exception e) {
-            System.out.println("源码抓取失败" + url);
+            System.out.println("源码抓取失败 " + url);
         }
         return content.trim();
 
@@ -124,12 +141,13 @@ public class HtmlUtil {
 
     /**
      * 获取静态网页源码
+     *
      * @param url     网页url地址
      * @param charset 网页编码
      * @return 网页源码
      */
-    public static String getSource(String url, String charset,String referer,String ua) {
-        if(ua==null){
+    public static String getSource(String url, String charset, String referer, String ua) {
+        if (ua == null) {
             ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36";
         }
         String content = null;
@@ -138,7 +156,7 @@ public class HtmlUtil {
         //请求头
         List<Header> headers = new ArrayList<>();
         headers.add(new BasicHeader("User-Agent", ua));
-        headers.add(new BasicHeader("Referer",referer));
+        headers.add(new BasicHeader("Referer", referer));
         //延迟
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(10000)
@@ -154,11 +172,10 @@ public class HtmlUtil {
             HttpEntity entity = httpClient.execute(get).getEntity();
             return EntityUtils.toString(entity, charset);
         } catch (Exception e) {
-            System.out.println("源码抓取失败" + url);
+            System.out.println("源码抓取失败 " + url);
         }
         return "";
     }
-
 
 
 }

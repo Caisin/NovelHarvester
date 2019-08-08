@@ -5,9 +5,10 @@
 
 [安卓版地址](https://github.com/unclezs/NovelDownloader)
 
-## 更新说明
+## 更新说明/下载地址
 [查看更新介绍](https://unclezs.gitee.io/service/%E6%9B%B4%E6%96%B0%E8%AF%B4%E6%98%8E.html "更新说明")
 
+[Uncle小说下载地址](https://www.lanzous.com/b517134)
 ## 功能简介：
 ### 一、.TXT小说下载
 1.1 下载任意小说网站的免费小说，打包成TXT格式，方式：通过小说目录链接解析下载

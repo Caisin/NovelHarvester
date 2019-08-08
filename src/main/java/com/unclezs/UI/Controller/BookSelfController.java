@@ -15,8 +15,10 @@ import com.unclezs.UI.Node.SearchNode;
 import com.unclezs.UI.Utils.ContentUtil;
 import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.UI.Utils.LayoutUitl;
+import com.unclezs.UI.Utils.ToastUtil;
 import com.unclezs.Utils.FileUtil;
 import com.unclezs.Utils.MybatisUtils;
+import com.unclezs.Utils.OBJUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -59,7 +61,9 @@ public class BookSelfController implements Initializable {
     private List<BookNode> list = new ArrayList();
     private ContextMenu menu;//添加导入菜单
     private ContextMenu rightMenu;//右键菜单
-    private NovelSpider spider=new NovelSpider(null);
+    private NovelSpider spider = new NovelSpider(null);
+    private boolean isLoading = false;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         queyBook();//查询所有书
@@ -161,7 +165,7 @@ public class BookSelfController implements Initializable {
                 return null;
             }
         };
-        ProgressFrom pf = new ProgressFrom(DataManager.mainStage,task);
+        ProgressFrom pf = new ProgressFrom(DataManager.mainStage, task);
         task.setOnSucceeded(e -> {
             pf.cancelProgressBar();
             Platform.runLater(() -> reloadBookMark());
@@ -226,8 +230,11 @@ public class BookSelfController implements Initializable {
                     list.remove(node);//移除书架
                     //删库
                     Integer id = node.getBook().getId();
+                    if (node.getBook().getIsWeb() == 0) {//本地图书删除缓存
+                        OBJUtil.deleteOBJ(id + "");
+                    }
                     //异步删除数据库信息
-                    new Thread(()->{
+                    new Thread(() -> {
                         SqlSession session = MybatisUtils.openSqlSession(true);
                         session.getMapper(NovelMapper.class).deleteById(id);
                         session.getMapper(ChapterMapper.class).deleteAllChapters(id);
@@ -256,6 +263,11 @@ public class BookSelfController implements Initializable {
 
     //打开一本书
     private void openBook(Book book) {
+        if (isLoading == true) {
+            ToastUtil.toast("书籍打开中");
+            return;
+        }
+        isLoading = true;//正在加载一次只能打开一本书
         //加载loading动画
         Task openBook = new Task() {
             @Override
@@ -265,20 +277,25 @@ public class BookSelfController implements Initializable {
                 NovelMapper novelMapper = session.getMapper(NovelMapper.class);
                 DataManager.book = novelMapper.findById(book.getId());//加载书籍信息
                 if (DataManager.book.getIsWeb() == 0) {//判断是否为网络书籍
-                    DataManager.lns = new LocalNovelLoader(book.getPath());//加载本地书籍
+                    if ((DataManager.lns = OBJUtil.loadOBJ(book.getId() + "")) == null) {
+                        LocalNovelLoader loader = new LocalNovelLoader(book.getPath());
+                        DataManager.lns = loader;//加载本地书籍
+                        OBJUtil.saveOBJ(loader, book.getId() + "");
+                    }
                 } else {
                     spider.setConf(session.getMapper(AnalysisMapper.class).queryAnalysisConfig(book.getId()));//获取网络小说解析配置
-                    DataManager.wns = new WebNovelLoader(book.getId(), book.getCharset(),spider);//加载网络书籍
+                    DataManager.wns = new WebNovelLoader(book.getId(), book.getCharset(), spider);//加载网络书籍
                     DataManager.wns.loadOnPage(book.getCpage());
                 }
                 session.close();
                 return null;
             }
         };
-        ProgressFrom pf = new ProgressFrom(DataManager.mainStage,openBook);
+        ProgressFrom pf = new ProgressFrom(DataManager.mainStage, openBook);
+        pf.activateProgressBar();//开启loading
         openBook.setOnSucceeded(e -> {
             try {
-                pf.cancelProgressBar();
+                pf.hidenProgressBar();
                 //打开本地书或者打开网络书
                 if (DataManager.lns == null || DataManager.lns.isExist() || DataManager.book.getIsWeb() == 1) {
                     Reader reader = new Reader();
@@ -297,9 +314,9 @@ public class BookSelfController implements Initializable {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
+            isLoading = false;
         });
-        pf.activateProgressBar();//关闭loading
-
+        openBook.setOnCancelled(e -> isLoading = false);
     }
 
     //重命名书籍
@@ -309,7 +326,7 @@ public class BookSelfController implements Initializable {
         Optional result = dialog.showAndWait();
         if (result.isPresent()) {
             String newName = dialog.getEditor().getText();
-            Task task=new Task<String>() {
+            Task task = new Task<String>() {
                 @Override
                 protected String call() throws Exception {
                     //更新数据库
@@ -328,7 +345,7 @@ public class BookSelfController implements Initializable {
             new Thread(task).start();
             book.getLabel().setText(newName);
             list.set(list.indexOf(book), book);
-            task.setOnSucceeded(e->book.getImg().setImage(new Image("file:" + task.getValue())));
+            task.setOnSucceeded(e -> book.getImg().setImage(new Image("file:" + task.getValue())));
         }
     }
 

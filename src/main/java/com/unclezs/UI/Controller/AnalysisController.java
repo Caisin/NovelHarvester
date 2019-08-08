@@ -12,15 +12,13 @@ import com.unclezs.Model.Book;
 import com.unclezs.Model.Chapter;
 import com.unclezs.Model.DownloadConfig;
 import com.unclezs.UI.Node.ProgressFrom;
-import com.unclezs.UI.Utils.AlertUtil;
 import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.UI.Utils.LayoutUitl;
 import com.unclezs.UI.Utils.ToastUtil;
+import com.unclezs.Utils.ConfUtil;
 import com.unclezs.Utils.FileUtil;
 import com.unclezs.Utils.MybatisUtils;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -88,7 +86,7 @@ public class AnalysisController implements Initializable {
         rule3.setToggleGroup(group);
         //自适应
         autoSize();
-        saveCongfig();//加载解析配置
+        saveConfig();//加载解析配置
         initContextMenu();//右键菜单
         //自动导入剪贴板内容到输入框
         if (DataManager.content.getChildren().size() > 0 && DataManager.content.getChildren().get(0).getId().equals("searchRoot")) {
@@ -158,17 +156,19 @@ public class AnalysisController implements Initializable {
         });
         //保存解析配置
         saveConfigBtn.setOnMouseClicked(e -> {
-            saveCongfig();
+            saveConfig();
             menuPane.setVisible(false);
             ToastUtil.toast("保存成功");
         });
         //点击输入框自动导入剪贴板内容
-        text.setOnMouseClicked(e -> {
-            autoImportClibord(false);
-            //光标移动到末尾
-            text.selectEnd();
-            text.deselect();
-        });
+        if (ConfUtil.get(ConfUtil.USE_ANALYSIS_PASTE).equals("true")) {
+            text.setOnMouseClicked(e -> {
+                autoImportClibord(false);
+                //光标移动到末尾
+                text.selectEnd();
+                text.deselect();
+            });
+        }
         //下载
         downloadIt.setOnMouseClicked(e -> {
             downloadBook();
@@ -212,11 +212,11 @@ public class AnalysisController implements Initializable {
                 @Override
                 protected List<Chapter> call() throws Exception {
                     //爬取章节列表
-                    chapters=spider.getChapterList(url);
+                    chapters = spider.getChapterList(url);
                     return chapters;
                 }
             };
-            ProgressFrom pf = new ProgressFrom(DataManager.mainStage,task);
+            ProgressFrom pf = new ProgressFrom(DataManager.mainStage, task);
             task.setOnSucceeded(e -> {
                 //加入listView
                 for (Chapter c : task.getValue()) {
@@ -286,7 +286,7 @@ public class AnalysisController implements Initializable {
                 return null;
             }
         };
-        ProgressFrom pf = new ProgressFrom(DataManager.mainStage,task);
+        ProgressFrom pf = new ProgressFrom(DataManager.mainStage, task);
         task.setOnSucceeded(e -> {
             pf.cancelProgressBar();
             ToastUtil.toast("添加成功!");
@@ -295,7 +295,7 @@ public class AnalysisController implements Initializable {
     }
 
     //保存配置
-    private void saveCongfig() {
+    private void saveConfig() {
         config.setAdStr(AdText.getText());
         config.setCookies(cookiesText.getText());
         config.setChapterFilter(chapterFilterUse.isSelected());
@@ -385,9 +385,8 @@ public class AnalysisController implements Initializable {
         for (int i = 0; i < list.getItems().size(); i++) {
             if (list.getItems().get(i).isSelected()) {
                 String s = this.chapters.get(i).getChapterName();
-                s = s.replaceAll("[0-9]", "")
-                        .replaceAll("第.+?章", "")
-                        .replaceAll("", "");//去掉所有数字
+                s = s.replaceAll("[0-9]", "")//去掉所有数字
+                        .replaceAll("第.*?章", "");
                 String newName = "第" + (index) + "章 " + s;
                 this.chapters.get(i).setChapterName(newName);//更新章节数据
                 this.list.getItems().get(i).setText(newName);//更新listView

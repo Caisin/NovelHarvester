@@ -1,11 +1,12 @@
 package com.unclezs.Crawl;
 
 
-import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.Utils.FileUtil;
 
-import java.io.*;
-import java.nio.charset.Charset;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +19,8 @@ import java.util.regex.Pattern;
  *@author unclezs.com
  *@date 2019.06.22 16:30
  */
-public class LocalNovelLoader {
+public class LocalNovelLoader implements Serializable {
+    public static final long serialVersionUID = 123456L;
     private String regex = "(.*?第[\\s\\S]{1,5}[章卷节].+?)\r\n";
     private String path;
     private String content[];

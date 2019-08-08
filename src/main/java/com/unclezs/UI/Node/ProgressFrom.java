@@ -52,7 +52,10 @@ public class ProgressFrom {
         label.setTextFill(Color.valueOf("#009688"));
         label.setAlignment(Pos.CENTER);
         label.setOnMouseClicked(e->{
-            cancelProgressBar();
+            dialogStage.close();
+            if(task.isRunning()){
+                task.cancel();
+            }
         });
         progressIndicator.setProgress(-1F);
         VBox vBox = new VBox();
@@ -99,10 +102,7 @@ public class ProgressFrom {
     }
 
     public void cancelProgressBar() {
-        dialogStage.close();
-        if(task.isRunning()){
-            task.cancel();
-        }
+        hidenProgressBar();
     }
     public void hidenProgressBar() {
         dialogStage.close();

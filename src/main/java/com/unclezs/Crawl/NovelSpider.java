@@ -1,7 +1,6 @@
 package com.unclezs.Crawl;
 
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.unclezs.Model.AnalysisConfig;
 import com.unclezs.Model.Chapter;
 import com.unclezs.Utils.*;
@@ -48,7 +47,7 @@ public class NovelSpider {
         } else {
             title = text.substring(0, text.length() > 10 ? 10 : text.length());
         }
-        return title.replaceAll("[\\pP]", "");
+        return title.replaceAll("[\\pP]", "").trim();
     }
 
     /**
@@ -152,6 +151,7 @@ public class NovelSpider {
                 parse = parse.replaceAll("&[#\\w]{3,6}[;:]{0,1}", "{空格}");
                 parse = parse.replaceAll("(<br/>|<br>|<br />)", "{换行}");
                 parse = parse.replaceAll("(\n|\r\n|<p>)", "{换行}");
+                parse = parse.replace("　", "");
                 Document document = Jsoup.parse(parse);
                 Elements divs = document.select("div");
                 String text = "";

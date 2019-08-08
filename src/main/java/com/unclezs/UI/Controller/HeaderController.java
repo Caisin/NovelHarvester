@@ -222,6 +222,4 @@ public class HeaderController implements Initializable {
         DataManager.mainStage.setWidth(width);
         DataManager.mainStage.setHeight(height);
     }
-
-
 }
