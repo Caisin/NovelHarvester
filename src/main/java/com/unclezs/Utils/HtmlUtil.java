@@ -7,10 +7,14 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -63,31 +67,33 @@ public class HtmlUtil {
         return code.replace("\"", "").trim();
     }
 
-//    public static String getHtml(String url, String charset, String cookies, String ua) {
-//        StringBuffer content = new StringBuffer();
-//        try {
-//            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-//            if (cookies != null && !"".equals(cookies))
-//                connection.addRequestProperty("Cookie", cookies);
-//            if (ua != null && !"".equals(ua)) {
-//                connection.addRequestProperty("User-Agent", ua);
-//            } else {
-//                connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
-//            }
-//            connection.setReadTimeout(10000);
-//            connection.setConnectTimeout(10000);
-//            connection.setInstanceFollowRedirects(true);
-//            BufferedReader br=new BufferedReader(new InputStreamReader(connection.getInputStream(),charset));
-//            String s;
-//            while ((s=br.readLine())!=null){
-//                content.append(s);
-//            }
-//        } catch (Exception e) {
-//            System.out.println("源码抓取失败 " + url);
-//        }
-//        return content.toString();
-//
-//    }
+    public static String getHtmlSource(String url, String charset, String cookies, String ua) {
+        StringBuffer content = new StringBuffer();
+        try {
+            ProxyUtil.proxyConnection();
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            if (cookies != null && !"".equals(cookies))
+                connection.addRequestProperty("Cookie", cookies);
+            if (ua != null && !"".equals(ua)) {
+                connection.addRequestProperty("User-Agent", ua);
+            } else {
+                connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
+            }
+            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(10000);
+            connection.setInstanceFollowRedirects(true);
+            BufferedReader br=new BufferedReader(new InputStreamReader(connection.getInputStream(),charset));
+            String s;
+            while ((s=br.readLine())!=null){
+                content.append(s);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("源码抓取失败 " + url);
+        }
+        return content.toString();
+
+    }
 
     public static String getHtml(String url, String charset, String cookies, String ua) {
         String content = null;
@@ -108,11 +114,14 @@ public class HtmlUtil {
                 .setConnectionRequestTimeout(10000)
                 .setSocketTimeout(10000)
                 .build();
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create()
+//        SystemDefaultRoutePlanner routePlanner = new SystemDefaultRoutePlanner(ProxySelector.getDefault());
+        HttpClientBuilder builder = HttpClients.custom()
+//                .setRoutePlanner(routePlanner)
                 .setDefaultHeaders(headers)
                 .setDefaultRequestConfig(config)
-                .setRetryHandler(retry)
-                .build()) {
+                .setRetryHandler(retry);
+        ProxyUtil.proxyHttpClient(builder);
+        try (CloseableHttpClient httpClient = builder.build()) {
             HttpGet get = new HttpGet(url);
             HttpEntity entity = httpClient.execute(get).getEntity();
             byte[] bytes = EntityUtils.toByteArray(entity);
@@ -163,11 +172,12 @@ public class HtmlUtil {
                 .setSocketTimeout(10000)
                 .setConnectionRequestTimeout(10000)
                 .build();
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create()
+        HttpClientBuilder builder = HttpClientBuilder.create()
                 .setDefaultHeaders(headers)
                 .setRetryHandler(retry)
-                .setDefaultRequestConfig(config)
-                .build()) {
+                .setDefaultRequestConfig(config);
+        ProxyUtil.proxyHttpClient(builder);
+        try (CloseableHttpClient httpClient = builder.build()) {
             HttpGet get = new HttpGet(url);
             HttpEntity entity = httpClient.execute(get).getEntity();
             return EntityUtils.toString(entity, charset);

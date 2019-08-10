@@ -8,6 +8,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
@@ -26,7 +27,9 @@ import java.util.List;
 public class HttpUtil {
     //get/post请求静态网页
     public static String request(String url) {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        ProxyUtil.proxyHttpClient(builder);
+        try (CloseableHttpClient client = builder.build()) {
             HttpEntity entity = client.execute(new HttpGet(url)).getEntity();
             String responce = EntityUtils.toString(entity, "UTF-8");
             return responce;
@@ -38,6 +41,7 @@ public class HttpUtil {
 
     public static int getResponseCode(String url) {
         try {
+            ProxyUtil.proxyConnection();
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
             return connection.getResponseCode();
@@ -74,17 +78,14 @@ public class HttpUtil {
                 .setConnectionRequestTimeout(10000)
                 .build();
         Header ua = new BasicHeader("User-Agent", "Mozilla/mobile QDReaderAndroid/7.9.3/397/1000209/868144031478396");
-        Header a = new BasicHeader("QDInfo", "nClz/d81lG6ik9pS8/NZnp9b4AWHpiq/vSqhlcyykKQw1aXbvbrJJb1k7KadBirIbBZypY8Sils/ImtKqlKOKixiNETujRpls7hVQXBeEiM+TnKRjVcCqptwlztM6qJ7ncyTizDxiFd2Y9BfKv9vRA==");
-        Header b = new BasicHeader("QDSign", "R7TCs6Tou2VUSM15JvlzZ12rEb6tf7KncdWMOkAUqdPMRpk+JOWc/dwlloCW FLCq6w8B1WwqtBpgW5A1fKnfJOhLyMh054d/waDN1d4WUBS0jUXt0ncG7IP/ HJhaAJY1MNtgFkkkYNpkBFrgVCcatKB+lYZVgfy9QGGxs+0YRgU=");
-        List<Header> headers=new ArrayList<>();
+        List<Header> headers = new ArrayList<>();
         headers.add(ua);
-        headers.add(a);
-        headers.add(b);
-        try (CloseableHttpClient client = HttpClients
+        HttpClientBuilder builder = HttpClients
                 .custom()
                 .setDefaultRequestConfig(config)
-                .setDefaultHeaders(headers)
-                .build()) {
+                .setDefaultHeaders(headers);
+        ProxyUtil.proxyHttpClient(builder);
+        try (CloseableHttpClient client = builder.build()) {
             UrlEncodedFormEntity entity = new UrlEncodedFormEntity(data, charset);
             post.setEntity(entity);
             HttpEntity httpEntity = client.execute(post).getEntity();
@@ -98,7 +99,9 @@ public class HttpUtil {
 
     //获取流
     public static InputStream stream(String url) {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        ProxyUtil.proxyHttpClient(builder);
+        try (CloseableHttpClient client = builder.build()) {
             return client.execute(new HttpGet(url)).getEntity().getContent();
         } catch (Exception e) {
             return null;
@@ -107,7 +110,9 @@ public class HttpUtil {
 
     //get/post请求静态网页
     public static String request(String url, List<Header> headers) {
-        try (CloseableHttpClient client = HttpClients.custom().setDefaultHeaders(headers).build()) {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        ProxyUtil.proxyHttpClient(builder);
+        try (CloseableHttpClient client = builder.setDefaultHeaders(headers).build()) {
             HttpEntity entity = client.execute(new HttpGet(url)).getEntity();
             String responce = EntityUtils.toString(entity, "UTF-8");
             return responce;

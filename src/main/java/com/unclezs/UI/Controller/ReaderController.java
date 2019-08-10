@@ -10,19 +10,18 @@ import com.unclezs.UI.App.Reader;
 import com.unclezs.UI.Node.ProgressFrom;
 import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.UI.Utils.LayoutUitl;
+import com.unclezs.UI.Utils.ToastUtil;
 import com.unclezs.UI.Utils.TrayUtil;
 import com.unclezs.Utils.MybatisUtils;
 import com.unclezs.Utils.VoiceUtil;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -58,6 +57,8 @@ public class ReaderController implements Initializable {
     @FXML
     JFXListView<String> list;//目录
     @FXML
+    TextField searchContent;//正文搜索
+    @FXML
     Pane root;//根容器
     int index = DataManager.book.getCpage();//当前章节
     private VoiceUtil voiceUtil;//朗读工具类
@@ -71,6 +72,8 @@ public class ReaderController implements Initializable {
     boolean isPageTopOver = false;//一章节顶部标志
     boolean isPageDownOver = false;//一章节尾部标志
     private static String itemText = "隐藏边框";//隐藏边框菜单文字
+    private static String searchText = "隐藏边框";//搜索内容，便于下一个
+    private static int searchIndex = 0;//搜索内容坐标，便于下一个
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -79,6 +82,7 @@ public class ReaderController implements Initializable {
         //初始化
         loadReaderConfig();//加载页面设置
         initLoad();//窗口初始化
+        initEventHandler();//初始化事件处理
         listSelect();//加载目录设置
         voiceRead();//初始化朗读
         initSetting();//初始化设置
@@ -136,6 +140,7 @@ public class ReaderController implements Initializable {
                 rightLabel.prefWidthProperty().bind(root.widthProperty().multiply(0.2));
                 rightLabel.prefHeightProperty().bind(root.heightProperty());
                 rightLabel.layoutXProperty().bind(root.layoutXProperty().add(root.widthProperty().subtract(rightLabel.widthProperty())));
+                searchContent.layoutXProperty().bind(root.layoutXProperty().add(root.widthProperty()).subtract(searchContent.widthProperty().add(20)));
                 autoSize();
                 sp = (ScrollPane) content.lookup(".scroll-pane");//获取textarea的scrollPane;
                 content.setScrollTop(DataManager.book.getvValue());
@@ -170,10 +175,15 @@ public class ReaderController implements Initializable {
         MenuItem preChapter = new MenuItem("上一章节", new ImageView("images/设置页/上一章.jpg"));
         MenuItem nextChapter = new MenuItem("下一章节", new ImageView("images/设置页/下一章.jpg"));
         MenuItem set = new MenuItem("设置面板", new ImageView("images/设置页/设置.jpg"));
+        MenuItem chapter = new MenuItem("查看目录", new ImageView("images/设置页/查看目录.png"));
         MenuItem winTop = new MenuItem("窗口置顶", new ImageView("images/设置页/置顶.png"));
         MenuItem winHide = new MenuItem(itemText, new ImageView("images/设置页/隐藏.png"));
         MenuItem minTray = new MenuItem("最小化到托盘(Alt+U)", new ImageView("images/设置页/最小化到托盘.png"));
-        contextMenu.getItems().addAll(nextChapter, preChapter, new SeparatorMenuItem(), set, new SeparatorMenuItem(), winTop, winHide, minTray);
+        contextMenu.getItems().addAll(chapter, nextChapter, preChapter, new SeparatorMenuItem(), set, new SeparatorMenuItem(), winTop, winHide, minTray);
+        //章节目录
+        chapter.setOnAction(e -> {
+            list.setVisible(!list.isVisible());
+        });
         //设置界面
         set.setOnAction(eee -> {
             setPane.setVisible(true);
@@ -231,7 +241,36 @@ public class ReaderController implements Initializable {
             stage.setHeight(height);
             stage.setWidth(width);
         });
-        content.setContextMenu(contextMenu);
+        this.content.setContextMenu(contextMenu);
+
+    }
+
+    //初始化事件处理
+    void initEventHandler() {
+        //搜索事件
+        this.searchContent.setOnKeyPressed(e -> {
+            switch (e.getCode()) {
+                case ENTER:
+                    String text = this.searchContent.getText().trim();
+                    if (!content.getText().contains(text)) {
+                        ToastUtil.toast("未匹配到结果", DataManager.readerStage);
+                    } else {
+                        if (text.equals(searchText)) {//上一次一样搜索内容
+                            searchIndex = content.getText().indexOf(searchText, searchIndex > content.getText().length() ? 0 : (searchIndex + searchText.length()));
+                        } else {
+                            searchIndex = content.getText().indexOf(text);
+                            searchText = text;
+                        }
+                        content.selectRange(searchIndex, searchIndex + searchText.length());
+                    }
+                case F:
+                    if (e.isControlDown()) {
+                        this.searchContent.setText("");
+                        this.searchIndex = 0;
+                        this.searchContent.setVisible(!this.searchContent.isVisible());
+                    }
+            }
+        });
     }
 
     //加载阅读器配置
@@ -295,7 +334,7 @@ public class ReaderController implements Initializable {
                         return null;
                     }
                 };
-                ProgressFrom pf = new ProgressFrom(DataManager.readerStage,task);
+                ProgressFrom pf = new ProgressFrom(DataManager.readerStage, task);
                 task.setOnSucceeded(e -> {
                     pf.cancelProgressBar();
                     this.content.setText(text);
@@ -366,6 +405,15 @@ public class ReaderController implements Initializable {
                 case F2:
                     DataManager.readerStage.setIconified(true);
                     break;
+                case F:
+                    if (e.isControlDown()) {
+                        this.searchContent.setText("");
+                        this.searchIndex = 0;
+                        this.searchContent.setVisible(!this.searchContent.isVisible());
+                        if (this.searchContent.isVisible()) {
+                            this.searchContent.requestFocus();
+                        }
+                    }
             }
         });
         //滚动翻页换章节

@@ -3,11 +3,13 @@ package com.unclezs.Utils;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.Cookie;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -31,7 +33,9 @@ public class HtmlUnitUtil {
             webClient.setAjaxController(new NicelyResynchronizingAjaxController());//很重要，设置支持AJAX
             setCookies(webClient, cookiesStr);
             setHeaders(webClient, headers);
-            final HtmlPage page = webClient.getPage(url);
+            WebRequest request=new WebRequest(new URL(url));
+            ProxyUtil.proxyHtmlUnit(request);
+            final HtmlPage page = webClient.getPage(request);
             webClient.waitForBackgroundJavaScript(5000);//异步JS执行需要耗时,所以这里线程要阻塞30秒,等待异步JS执行结束
             return page;
         } catch (Exception e){
