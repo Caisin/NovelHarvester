@@ -12,7 +12,7 @@ import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.UI.Utils.LayoutUitl;
 import com.unclezs.UI.Utils.ToastUtil;
 import com.unclezs.UI.Utils.TrayUtil;
-import com.unclezs.Utils.MybatisUtils;
+import com.unclezs.Utils.MybatisUtil;
 import com.unclezs.Utils.VoiceUtil;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -154,18 +154,18 @@ public class ReaderController implements Initializable {
                 //关闭语音
                 if (voiceUtil != null) voiceUtil.stop();
                 //保存阅读器配置
-                ReaderMapper mapper = MybatisUtils.getMapper(ReaderMapper.class);
+                ReaderMapper mapper = MybatisUtil.getMapper(ReaderMapper.class);
                 DataManager.readerConfig.setFontSize(content.getFont().getSize());//字体大小
                 DataManager.readerConfig.setFontStyle(content.getFont().getFamily());//字体样式
                 DataManager.readerConfig.setPageWidth(contentMaxWidth);//页宽
                 DataManager.readerConfig.setStageHeight(DataManager.readerStage.getHeight());//舞台高度
                 DataManager.readerConfig.setStageWidth(DataManager.readerStage.getWidth());//舞台宽度
                 mapper.updateConfig(DataManager.readerConfig);
-                MybatisUtils.getCurrentSqlSession().close();
+                MybatisUtil.getCurrentSqlSession().close();
                 //保存新的书信息阅读位置
-                NovelMapper bookMapper = MybatisUtils.getMapper(NovelMapper.class);
+                NovelMapper bookMapper = MybatisUtil.getMapper(NovelMapper.class);
                 bookMapper.updateCPage(DataManager.book.getId(), index, content.getScrollTop());
-                MybatisUtils.getCurrentSqlSession().close();
+                MybatisUtil.getCurrentSqlSession().close();
             }).start();
             DataManager.mainStage.show();
         });

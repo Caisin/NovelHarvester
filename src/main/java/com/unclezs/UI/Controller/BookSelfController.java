@@ -11,13 +11,12 @@ import com.unclezs.Model.Book;
 import com.unclezs.UI.App.Reader;
 import com.unclezs.UI.Node.BookNode;
 import com.unclezs.UI.Node.ProgressFrom;
-import com.unclezs.UI.Node.SearchNode;
 import com.unclezs.UI.Utils.ContentUtil;
 import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.UI.Utils.LayoutUitl;
 import com.unclezs.UI.Utils.ToastUtil;
 import com.unclezs.Utils.FileUtil;
-import com.unclezs.Utils.MybatisUtils;
+import com.unclezs.Utils.MybatisUtil;
 import com.unclezs.Utils.OBJUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -27,7 +26,9 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -36,10 +37,7 @@ import org.apache.ibatis.session.SqlSession;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /*
  *书架页面
@@ -156,12 +154,12 @@ public class BookSelfController implements Initializable {
                 String imgPath = FileUtil.uploadFile("./image/" + name + ".jpg", img);
                 System.out.println(imgPath);
                 //存库
-                NovelMapper novelMapper = MybatisUtils.getMapper(NovelMapper.class);
+                NovelMapper novelMapper = MybatisUtil.getMapper(NovelMapper.class);
                 novelMapper.save(new Book(name, path, imgPath));//添加
                 //入架
                 list.add(new BookNode(novelMapper.findLastOne()));
                 //归还sqlsession
-                MybatisUtils.getCurrentSqlSession().close();
+                MybatisUtil.getCurrentSqlSession().close();
                 return null;
             }
         };
@@ -203,11 +201,11 @@ public class BookSelfController implements Initializable {
     private void queyBook() {
         long l = System.currentTimeMillis();
         list.clear();
-        List<Book> books = MybatisUtils.getMapper(NovelMapper.class).findAll();
+        List<Book> books = MybatisUtil.getMapper(NovelMapper.class).findAll();
         for (Book book : books) {
             list.add(new BookNode(book));
         }
-        MybatisUtils.getCurrentSqlSession().close();//归还session
+        MybatisUtil.getCurrentSqlSession().close();//归还session
         System.out.println("书架查库：" + (System.currentTimeMillis() - l));
     }
 
@@ -235,7 +233,7 @@ public class BookSelfController implements Initializable {
                     }
                     //异步删除数据库信息
                     new Thread(() -> {
-                        SqlSession session = MybatisUtils.openSqlSession(true);
+                        SqlSession session = MybatisUtil.openSqlSession(true);
                         session.getMapper(NovelMapper.class).deleteById(id);
                         session.getMapper(ChapterMapper.class).deleteAllChapters(id);
                         session.getMapper(AnalysisMapper.class).deleteSpiderConfig(id);
@@ -272,7 +270,7 @@ public class BookSelfController implements Initializable {
         Task openBook = new Task() {
             @Override
             protected Object call() {
-                SqlSession session = MybatisUtils.openSqlSession(true);
+                SqlSession session = MybatisUtil.openSqlSession(true);
                 DataManager.readerConfig = session.getMapper(ReaderMapper.class).queryConfig();//加载阅读器配置
                 NovelMapper novelMapper = session.getMapper(NovelMapper.class);
                 DataManager.book = novelMapper.findById(book.getId());//加载书籍信息
@@ -317,6 +315,16 @@ public class BookSelfController implements Initializable {
             isLoading = false;
         });
         openBook.setOnCancelled(e -> isLoading = false);
+        openBook.setOnFailed(e->isLoading=false);
+        //计时任务
+        TimerTask t=new TimerTask() {
+            @Override
+            public void run() {
+                isLoading=false;
+            }
+        };
+        Timer timer=new Timer();
+        timer.schedule(t,15000);
     }
 
     //重命名书籍
@@ -330,14 +338,14 @@ public class BookSelfController implements Initializable {
                 @Override
                 protected String call() throws Exception {
                     //更新数据库
-                    MybatisUtils.getMapper(NovelMapper.class).updateBookName(book.getBook().getId(), newName);
-                    MybatisUtils.getCurrentSqlSession().close();
+                    MybatisUtil.getMapper(NovelMapper.class).updateBookName(book.getBook().getId(), newName);
+                    MybatisUtil.getCurrentSqlSession().close();
                     //获取新的封面
                     String imgUrl = spider.crawlDescImage(newName);
                     String path = FileUtil.uploadFile("./image/" + newName + ".jpg", imgUrl);
                     //更新库
-                    MybatisUtils.getMapper(NovelMapper.class).updateBookCover(book.getBook().getId(), path);
-                    MybatisUtils.getCurrentSqlSession().close();
+                    MybatisUtil.getMapper(NovelMapper.class).updateBookCover(book.getBook().getId(), path);
+                    MybatisUtil.getCurrentSqlSession().close();
                     return path;
                 }
             };
@@ -362,8 +370,8 @@ public class BookSelfController implements Initializable {
             book.getImg().setImage(new Image("file:" + path));
             //更新库
             new Thread(() -> {
-                MybatisUtils.getMapper(NovelMapper.class).updateBookCover(book.getBook().getId(), path);
-                MybatisUtils.getCurrentSqlSession().close();
+                MybatisUtil.getMapper(NovelMapper.class).updateBookCover(book.getBook().getId(), path);
+                MybatisUtil.getCurrentSqlSession().close();
             }).start();
         }
     }
@@ -376,8 +384,8 @@ public class BookSelfController implements Initializable {
             String newV = dialog.getEditor().getText();
             //更新Cookies
             new Thread(() -> {
-                MybatisUtils.getMapper(AnalysisMapper.class).updateCookies(aid, newV);
-                MybatisUtils.getCurrentSqlSession().close();
+                MybatisUtil.getMapper(AnalysisMapper.class).updateCookies(aid, newV);
+                MybatisUtil.getCurrentSqlSession().close();
             }).start();
         }
     }

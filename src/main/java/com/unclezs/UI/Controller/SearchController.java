@@ -13,7 +13,6 @@ import com.unclezs.UI.Utils.ToastUtil;
 import com.unclezs.Utils.HttpUtil;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -24,9 +23,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
 
 import java.awt.*;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -148,7 +145,7 @@ public class SearchController implements Initializable {
             if (index == 0) {
                 pfs = new ProgressFrom(DataManager.mainStage, task);
                 pfs.activateProgressBar();
-            }else {
+            } else {
                 new Thread(task).start();
             }
             task.setOnSucceeded(event -> {
@@ -165,10 +162,16 @@ public class SearchController implements Initializable {
                     }
                     search.setDisable(false);//释放搜索按钮
                 }
-                if(index==0){
+                if (index == 0) {
                     //取消Loading
                     pfs.hidenProgressBar();
                 }
+            });
+            task.setOnCancelled(e -> search.setDisable(false));
+            task.setOnFailed(e -> {
+                search.setDisable(false);
+                pfs.cancelProgressBar();
+                ToastUtil.toast("请求超时");
             });
         }
 

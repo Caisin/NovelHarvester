@@ -8,13 +8,11 @@ import com.unclezs.Model.AudioBook;
 import com.unclezs.Model.AudioChapter;
 import com.unclezs.UI.Node.ProgressFrom;
 import com.unclezs.UI.Node.SearchAudioNode;
-import com.unclezs.UI.Node.SearchNode;
 import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.UI.Utils.LayoutUitl;
 import com.unclezs.UI.Utils.ToastUtil;
-import com.unclezs.Utils.MybatisUtils;
+import com.unclezs.Utils.MybatisUtil;
 import javafx.application.Platform;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -28,18 +26,14 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
 import org.apache.ibatis.session.SqlSession;
 
 import java.awt.*;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -156,7 +150,7 @@ public class AudioBookSelfController implements Initializable {
                 menu.getItems().get(1).setOnAction(ev -> {
                     bookListData.remove(bookList.getSelectionModel().getSelectedIndex());
                     new Thread(() -> {
-                        SqlSession sqlSession = MybatisUtils.openSqlSession(true);
+                        SqlSession sqlSession = MybatisUtil.openSqlSession(true);
                         AudioBookMapper mapper = sqlSession.getMapper(AudioBookMapper.class);
                         mapper.deleteById(selectedBook.getId());
                         sqlSession.close();
@@ -372,7 +366,7 @@ public class AudioBookSelfController implements Initializable {
     public static void addBookToSelf(AudioBook book) {
         //入库
         new Thread(() -> {
-            SqlSession sqlSession = MybatisUtils.openSqlSession(true);
+            SqlSession sqlSession = MybatisUtil.openSqlSession(true);
             AudioBookMapper mapper = sqlSession.getMapper(AudioBookMapper.class);
             book.setLastChapter(book.getChapters().get(book.getLastIndex()).getTitle());
             mapper.saveBook(book);
@@ -403,9 +397,9 @@ public class AudioBookSelfController implements Initializable {
             return;
         }
         book.setLastChapter(book.getChapters().get(book.getLastIndex()).getTitle());
-        AudioBookMapper mapper = MybatisUtils.getMapper(AudioBookMapper.class);
+        AudioBookMapper mapper = MybatisUtil.getMapper(AudioBookMapper.class);
         mapper.updateBook(book);
-        MybatisUtils.getCurrentSqlSession().close();
+        MybatisUtil.getCurrentSqlSession().close();
     }
 
     //加载书架的书
@@ -414,7 +408,7 @@ public class AudioBookSelfController implements Initializable {
             Task<List<SearchAudioNode>> task = new Task<List<SearchAudioNode>>() {
                 @Override
                 protected List<SearchAudioNode> call() throws Exception {
-                    SqlSession sqlSession = MybatisUtils.openSqlSession(true);
+                    SqlSession sqlSession = MybatisUtil.openSqlSession(true);
                     AudioBookMapper mapper = sqlSession.getMapper(AudioBookMapper.class);
                     List<AudioBook> books = mapper.findAll();
                     List<SearchAudioNode> nodes = new ArrayList<>();

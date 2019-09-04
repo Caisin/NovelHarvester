@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  */
 public class LocalNovelLoader implements Serializable {
     public static final long serialVersionUID = 123456L;
-    private String regex = "(.*?第[\\s\\S]{1,5}[章卷节].+?)\r\n";
+    private String regex = "(.*?第[\\s\\S]{1,10}[章卷节].+?)\r\n";
     private String path;
     private String content[];
     private String name;

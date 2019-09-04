@@ -4,10 +4,6 @@ import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.ComThread;
 import com.jacob.com.Dispatch;
 import com.jacob.com.Variant;
-import javafx.collections.ObservableList;
-
-import javax.sound.midi.Soundbank;
-import java.io.IOException;
 
 /*
  *@author unclezs.com

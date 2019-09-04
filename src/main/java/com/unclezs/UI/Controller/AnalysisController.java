@@ -17,7 +17,7 @@ import com.unclezs.UI.Utils.LayoutUitl;
 import com.unclezs.UI.Utils.ToastUtil;
 import com.unclezs.Utils.ConfUtil;
 import com.unclezs.Utils.FileUtil;
-import com.unclezs.Utils.MybatisUtils;
+import com.unclezs.Utils.MybatisUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -268,7 +268,7 @@ public class AnalysisController implements Initializable {
                 Book book = new Book(name, homeUrl, imgPath);
                 book.setCharset(charset);
                 book.setIsWeb(1);//标记为网络书籍
-                SqlSession sqlSession = MybatisUtils.openSqlSession(true);//开启sqlSession
+                SqlSession sqlSession = MybatisUtil.openSqlSession(true);//开启sqlSession
                 NovelMapper mapper = sqlSession.getMapper(NovelMapper.class);
                 mapper.save(book);
                 //保存选中的章节信息
@@ -352,7 +352,7 @@ public class AnalysisController implements Initializable {
             ToastUtil.toast("请先解析目录！");
             return;
         }
-        SettingMapper mapper = MybatisUtils.getMapper(SettingMapper.class);
+        SettingMapper mapper = MybatisUtil.getMapper(SettingMapper.class);
         DownloadConfig config = mapper.querySetting();
         if ("".equals(config.getPath()) || config.getPath() == null) {//路径不为空的时候使用当前路径
             config.setPath(new File("./").getAbsolutePath().replace(".", ""));

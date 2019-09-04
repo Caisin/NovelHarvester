@@ -3,15 +3,12 @@ package com.unclezs.UI.Controller;
 import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXProgressBar;
 import com.unclezs.Adapter.DownloadAdapter;
-import com.unclezs.Downloader.NovelDownloader;
 import com.unclezs.Mapper.DownHistoryMapper;
-import com.unclezs.Mapper.SettingMapper;
-import com.unclezs.Model.DownloadConfig;
 import com.unclezs.Model.DownloadHistory;
 import com.unclezs.UI.Node.DownloadedNode;
 import com.unclezs.UI.Node.DownloadingNode;
 import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.Utils.MybatisUtils;
+import com.unclezs.Utils.MybatisUtil;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -22,7 +19,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.session.SqlSession;
 
 import java.net.URL;
@@ -123,7 +119,7 @@ public class DownloadController implements Initializable {
 
     //添加下载任务
     public static void addTask(DownloadAdapter downloader) {
-        MybatisUtils.getCurrentSqlSession().close();
+        MybatisUtil.getCurrentSqlSession().close();
         DownloadingNode downloadingNode = new DownloadingNode(null, new SimpleStringProperty(downloader.getTitle()));
         JFXProgressBar pb = downloadingNode.getPb();//进度条
         Label label = downloadingNode.getLabel();//文字进度条
@@ -151,7 +147,7 @@ public class DownloadController implements Initializable {
         //成功后移除然后加入下载完成里
         t.setOnSucceeded(e -> {
             //开启sqlSession
-            SqlSession sqlSession = MybatisUtils.openSqlSession(true);
+            SqlSession sqlSession = MybatisUtil.openSqlSession(true);
             DownHistoryMapper mapper = sqlSession.getMapper(DownHistoryMapper.class);
             DownloadHistory history = new DownloadHistory(downloader.getType(), downloader.getPath(), downloader.getTitle(), getCurrentDate(), downloader.getImgPath());
             //保存记录入库
@@ -184,7 +180,7 @@ public class DownloadController implements Initializable {
 
     public void loadHistory() {
         new Thread(() -> {
-            DownHistoryMapper mapper = MybatisUtils.getMapper(DownHistoryMapper.class);
+            DownHistoryMapper mapper = MybatisUtil.getMapper(DownHistoryMapper.class);
             List<DownloadHistory> historys=null;
             try {
                 historys = mapper.findAllDownloadHistory();
@@ -200,7 +196,7 @@ public class DownloadController implements Initializable {
                 removeHistory(node);
                 overList.getItems().add(node);
             }
-            MybatisUtils.getCurrentSqlSession().close();
+            MybatisUtil.getCurrentSqlSession().close();
         }).start();
     }
 
@@ -209,9 +205,9 @@ public class DownloadController implements Initializable {
         Platform.runLater(() -> {
             node.getRemove().setOnMouseClicked(event -> {
                 finishList.remove(node);//移除列表
-                DownHistoryMapper mapper = MybatisUtils.getMapper(DownHistoryMapper.class);
+                DownHistoryMapper mapper = MybatisUtil.getMapper(DownHistoryMapper.class);
                 mapper.deleteDownLoadHistroy(node.getHistory().getId());//删库
-                MybatisUtils.getCurrentSqlSession().close();
+                MybatisUtil.getCurrentSqlSession().close();
             });
         });
     }

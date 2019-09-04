@@ -11,7 +11,7 @@ import com.unclezs.UI.Utils.AlertUtil;
 import com.unclezs.UI.Utils.DataManager;
 import com.unclezs.UI.Utils.ToastUtil;
 import com.unclezs.Utils.ConfUtil;
-import com.unclezs.Utils.MybatisUtils;
+import com.unclezs.Utils.MybatisUtil;
 import com.unclezs.Utils.ProxyUtil;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -66,9 +66,9 @@ public class SettingController implements Initializable {
         for (int i = 50; i < 10000; i += 100) {
             chapterNum.getItems().add(i);
         }
-        SettingMapper mapper = MybatisUtils.getMapper(SettingMapper.class);
+        SettingMapper mapper = MybatisUtil.getMapper(SettingMapper.class);
         config = mapper.querySetting();
-        MybatisUtils.getCurrentSqlSession().close();
+        MybatisUtil.getCurrentSqlSession().close();
         merge.setSelected(config.isMergeFile());
         merge.setDisableVisualFocus(true);//禁用焦点过渡
         chapterNum.setValue(config.getPerThreadDownNum());
@@ -135,10 +135,6 @@ public class SettingController implements Initializable {
         testProxy.setOnMouseClicked(e->{
             String host = proxyHost.getText();
             String port = proxyPort.getText();
-            if(host!=null&&"".equals(host)&&port!=null&&"".equals(port)){
-                ToastUtil.toast("请填先写完整",DataManager.settingStage);
-                return;
-            }
             Task<String> task=new Task<String>() {
                 @Override
                 protected String call() throws Exception {
@@ -160,10 +156,6 @@ public class SettingController implements Initializable {
         saveProxy.setOnMouseClicked(e->{
             String host = proxyHost.getText();
             String port = proxyPort.getText();
-            if(host!=null&&"".equals(host)&&port!=null&&"".equals(port)){
-                ToastUtil.toast("请填写完整",DataManager.settingStage);
-                return;
-            }
             ConfUtil.set(ConfUtil.PROXY_HOSTNAME,host);
             ConfUtil.set(ConfUtil.PROXY_PORT,port);
             ToastUtil.toast("保存成功",DataManager.settingStage);
@@ -173,9 +165,9 @@ public class SettingController implements Initializable {
     //保存更新设置
     public static void updateSetting() {
         new Thread(() -> {
-            SettingMapper mapper = MybatisUtils.getMapper(SettingMapper.class);
+            SettingMapper mapper = MybatisUtil.getMapper(SettingMapper.class);
             mapper.updateSetting(config);
-            MybatisUtils.getCurrentSqlSession().close();
+            MybatisUtil.getCurrentSqlSession().close();
         }).start();
     }
 }

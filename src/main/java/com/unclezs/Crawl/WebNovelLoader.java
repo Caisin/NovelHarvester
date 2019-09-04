@@ -1,15 +1,11 @@
 package com.unclezs.Crawl;
 
 import com.unclezs.Mapper.ChapterMapper;
-import com.unclezs.Mapper.NovelMapper;
 import com.unclezs.Model.Chapter;
-import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.Utils.MybatisUtils;
+import com.unclezs.Utils.MybatisUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /*
  *网络小说加载器
@@ -34,7 +30,7 @@ public class WebNovelLoader {
     public void initLoad() {
         chapters = new ArrayList<>();
         contentUrl = new ArrayList<>();
-        ChapterMapper mapper = MybatisUtils.getMapper(ChapterMapper.class);
+        ChapterMapper mapper = MybatisUtil.getMapper(ChapterMapper.class);
         List<Chapter> cs = mapper.findAllChapter(aid);
         for (int i = 0; i < cs.size(); i++) {
             chapters.add(cs.get(i).getChapterName());

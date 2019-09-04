@@ -65,7 +65,9 @@ public class NovelSpider {
             //抓取源码自动识别网页编码
             String html = getHtml(url, charset);
             charset = HtmlUtil.getEncode(html);
-            if (!(charset.toLowerCase().equals("gbk"))) {
+            if(charset.toLowerCase().contains("gb")){//g2312采用gbk编码更全
+                charset="gbk";
+            }else {//utf-8重新抓取
                 html = getHtml(url, charset);
             }
             //根据用户输入章节头尾删减html
