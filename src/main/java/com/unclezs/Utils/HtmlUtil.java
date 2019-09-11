@@ -1,5 +1,7 @@
 package com.unclezs.Utils;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpRequestRetryHandler;
@@ -12,13 +14,12 @@ import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,31 +68,28 @@ public class HtmlUtil {
         return code.replace("\"", "").trim();
     }
 
-    public static String getHtmlSource(String url, String charset, String cookies, String ua) {
-        StringBuffer content = new StringBuffer();
+    public static String getHtmlSource(String url, String charset, Map<String, String> headers) {
         try {
+            //启用代理
             ProxyUtil.proxyConnection();
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            if (cookies != null && !"".equals(cookies))
-                connection.addRequestProperty("Cookie", cookies);
-            if (ua != null && !"".equals(ua)) {
-                connection.addRequestProperty("User-Agent", ua);
-            } else {
+            //默认请求头
+            if (StringUtils.isEmpty(headers.get(Config.USER_AGENT))) {
                 connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
+            }
+            //自定义请求头
+            for(String key:headers.keySet()){
+                connection.addRequestProperty(key,headers.get(key));
             }
             connection.setReadTimeout(10000);
             connection.setConnectTimeout(10000);
             connection.setInstanceFollowRedirects(true);
-            BufferedReader br=new BufferedReader(new InputStreamReader(connection.getInputStream(),charset));
-            String s;
-            while ((s=br.readLine())!=null){
-                content.append(s);
-            }
+            return IOUtils.toString(connection.getInputStream(),charset);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("源码抓取失败 " + url);
         }
-        return content.toString();
+        return "";
 
     }
 

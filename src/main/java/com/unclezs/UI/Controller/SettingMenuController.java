@@ -62,7 +62,7 @@ public class SettingMenuController implements Initializable {
             Stage stage = getStage();
             DataManager.settingStage=stage;
             try {
-                JFXTabPane pane = FXMLLoader.load(getClass().getResource("/fxml/setting_copy.fxml"));
+                JFXTabPane pane = FXMLLoader.load(getClass().getResource("/fxml/setting.fxml"));
                 Scene scene = new Scene(pane);
                 stage.setTitle("设置");
                 stage.setScene(scene);
@@ -91,7 +91,7 @@ public class SettingMenuController implements Initializable {
         //赞赏
         //关于
         about.setOnMouseClicked(e -> {
-            AlertUtil.getAlert("关于", "如果有问题欢迎反馈给我😄\r\n\r\n版本号：V3.52\r\n开发者QQ：1585503310\r\n开发者邮箱：1585503310@qq.com\r\n问题反馈建议Q群: 774716671").show();
+            AlertUtil.getAlert("关于", "如果有问题欢迎反馈给我😄\r\n\r\n版本号：V3.54\r\n开发者QQ：1585503310\r\n开发者邮箱：1585503310@qq.com\r\n问题反馈建议Q群: 774716671").show();
         });
         //免责声明
         safe.setOnMouseClicked(e -> {
