@@ -1,8 +1,8 @@
-package com.unclezs.Crawl;
+package com.unclezs.crawl;
 
-import com.unclezs.Mapper.ChapterMapper;
-import com.unclezs.Model.Chapter;
-import com.unclezs.Utils.MybatisUtil;
+import com.unclezs.mapper.ChapterMapper;
+import com.unclezs.model.Chapter;
+import com.unclezs.utils.MybatisUtil;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,6 @@
-package com.unclezs.Mapper;
+package com.unclezs.mapper;
 
-import com.unclezs.Model.AnalysisConfig;
+import com.unclezs.model.AnalysisConfig;
 import org.apache.ibatis.annotations.*;
 
 /*

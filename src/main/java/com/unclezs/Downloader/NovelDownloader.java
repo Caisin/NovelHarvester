@@ -1,13 +1,16 @@
-package com.unclezs.Downloader;
+package com.unclezs.downloader;
 
 
-import com.unclezs.Adapter.DownloadAdapter;
-import com.unclezs.Crawl.NovelSpider;
-import com.unclezs.Model.DownloadConfig;
-import com.unclezs.Utils.CharacterUtil;
-import com.unclezs.Utils.EpubUtil;
-import com.unclezs.Utils.FileUtil;
-import com.unclezs.Utils.HtmlUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.http.HttpUtil;
+import com.unclezs.adapter.DownloadAdapter;
+import com.unclezs.crawl.NovelSpider;
+import com.unclezs.model.DownloadConfig;
+import com.unclezs.utils.CharacterUtil;
+import com.unclezs.utils.EpubUtil;
+import com.unclezs.utils.OsUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,7 +19,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,16 +48,21 @@ public class NovelDownloader implements DownloadAdapter {
     @Override
     public void start() {
         //爬取图片
-        new Thread(() -> {
+        //保存封面
+        ThreadUtil.execute(() -> {
             String imgURl = spider.crawlDescImage(spider.getConfig().get("title"));
-            imgPath = FileUtil.uploadFile("./image/" + spider.getConfig().get("title") + ".jpg", imgURl);
-        }).start();
+            imgPath = "." + File.separator + "image" + File.separator + spider.getConfig().get("title") + ".jpg";
+            HttpUtil.downloadFile(imgURl, imgPath);
+        });
         //获取目录
-        String tempPath = config.getPath() + "/block/" + spider.getConfig().get("title") + "/";//分块目录位置
-        path = config.getPath();//下载位置
+        // 分块目录位置
+        String tempPath = config.getPath() +"block"+ File.separator + spider.getConfig().get("title") + File.separator;
+        //下载位置
+        path = config.getPath();
         File f = new File(tempPath);
-        FileUtil.deleteDir(f);//删除原有的
-        f.mkdirs();//重新创建文件夹
+        //删除原有的
+        FileUtil.del(f);
+        FileUtil.mkdir(f);
         //计算需要线程数量
         int threadNum = (int) Math.ceil(list.size() * 1.0 / config.getPerThreadDownNum());
         //如果不合并则单线程下载
@@ -63,15 +70,18 @@ public class NovelDownloader implements DownloadAdapter {
             config.setPerThreadDownNum(list.size() + 1);
             threadNum = 1;
         }
-        service = Executors.newFixedThreadPool(threadNum % 50);//最多50个线程
+        //最多50个线程
+        service = ThreadUtil.newExecutor(threadNum % 50);
         //任务分块
         int st;
         int end = 0;
-        List<Future<String>> Task = new ArrayList<>();//任务监控
+        //任务监控
+        List<Future<String>> Task = new ArrayList<>();
         final int num = threadNum;
         for (int i = 0; i < threadNum; i++) {
             isShutdown.add(true);
-            if (i == threadNum - 1) {//最后一次不足每个线程下载章节数量，则全部下载
+            //最后一次不足每个线程下载章节数量，则全部下载
+            if (i == threadNum - 1) {
                 st = end;
                 end = list.size();
             } else {//每次增加配置数量
@@ -83,21 +93,21 @@ public class NovelDownloader implements DownloadAdapter {
             final int eIndex = end;
             Task.add(service.submit(new Callable<String>() {
                 @Override
-                public String call(){
+                public String call() {
                     String path;
                     //分块下载
                     for (int i = sIndex; i < eIndex; i++) {
                         //是否合并，不合并则每个章节按照标题命名
                         if (config.isMergeFile() && num != 1) {
                             path = tempPath + sIndex + "-" + eIndex + ".txt";
-                        }else if(config.isMergeFile() && num == 1) {
+                        } else if (config.isMergeFile() && num == 1) {
                             path = tempPath + i + "-" + i + ".txt";
-                        }else {
+                        } else {
                             path = tempPath + nameList.get(i) + ".txt";
                         }
                         try (PrintWriter out = new PrintWriter(
                                 new OutputStreamWriter(
-                                        new FileOutputStream(new File(path), true), spider.getConfig().get("charset")), true)) {
+                                        new FileOutputStream(FileUtil.file(path), true), spider.getConfig().get("charset")), true)) {
                             StringBuffer content;
                             if (!isShutdown.get(taskId)) {
                                 return null;
@@ -127,7 +137,7 @@ public class NovelDownloader implements DownloadAdapter {
                             out.println(nameList.get(i));
                             out.println(content.toString());
                             //没有到最后一个
-                            if(overNum.size()!=(getMaxNum()-1)){
+                            if (overNum.size() != (getMaxNum() - 1)) {
                                 overNum.add(i);
                             }
                             Thread.sleep(config.getSleepTime());
@@ -150,7 +160,7 @@ public class NovelDownloader implements DownloadAdapter {
         //文本转码
         if (config.isMergeFile()) {
             //下载完成合并
-            FileUtil.mergeFiles(spider.getConfig().get("title"), config.getPath(), tempPath, spider.getConfig().get("charset"));
+            OsUtil.mergeFiles(spider.getConfig().get("title"), config.getPath(), tempPath, spider.getConfig().get("charset"));
             //合并完成转码
             if (!config.getFormat().equals("txt")) {
                 EpubUtil.Txt2Epub(config.getPath() + spider.getConfig().get("title"), spider.getConfig().get("title"), " ", config.getFormat());

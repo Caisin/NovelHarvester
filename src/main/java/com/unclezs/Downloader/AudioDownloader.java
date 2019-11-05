@@ -1,11 +1,15 @@
-package com.unclezs.Downloader;
+package com.unclezs.downloader;
 
-import com.unclezs.Adapter.DownloadAdapter;
-import com.unclezs.Crawl.AudioNovelSpider;
-import com.unclezs.Model.AudioBook;
-import com.unclezs.Model.AudioChapter;
-import com.unclezs.Model.DownloadConfig;
-import com.unclezs.Utils.FileUtil;
+import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.http.HttpUtil;
+import com.unclezs.adapter.DownloadAdapter;
+import com.unclezs.crawl.AudioNovelSpider;
+import com.unclezs.model.AudioBook;
+import com.unclezs.model.AudioChapter;
+import com.unclezs.model.DownloadConfig;
+import cn.hutool.core.io.FileUtil;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -13,24 +17,32 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-/*
- *音频下载器
- *@author unclezs.com
- *@date 2019.07.08 20:23
+/**
+ * 音频下载器
+ *
+ * @author unclezs.com
+ * @date 2019.07.08 20:23
  */
 public class AudioDownloader implements DownloadAdapter {
-    private DownloadConfig config;//下载配置
+    /**
+     * 下载配置
+     */
+    private DownloadConfig config;
     private AudioBook book;
-    private List<Integer> overNum;//完成数量
+    /**
+     * 完成数量
+     */
+    private List<Integer> overNum;
     private List<String> taskUrl;
     private ExecutorService service;
-    private boolean isPhone;//是否开启手机模式下载
+    /**
+     * 是否开启手机模式下载
+     */
+    private boolean isPhone;
     private List<Boolean> isShutdown = new ArrayList<>();
 
     public AudioDownloader(DownloadConfig config, AudioBook book, boolean isPhone) {
@@ -48,22 +60,27 @@ public class AudioDownloader implements DownloadAdapter {
     @Override
     public void start() {
         //保存封面
-        new Thread(() -> {
-            String img = FileUtil.uploadFile("./image/audio/" + UUID.randomUUID() + ".jpg", book.getImageUrl());
+        ThreadUtil.execute(() -> {
+            String img = "."+File.separator+"image"+File.separator+"audio"+File.separator + IdUtil.simpleUUID() + ".jpg";
+            HttpUtil.downloadFile(book.getImageUrl(), img);
             book.setImageUrl(img);
         });
         //更新路径
         config.setPath(config.getPath() + book.getTitle());
         //计算需要线程数量
         int threadNum = (int) Math.ceil(book.getChapters().size() * 1.0 / config.getPerThreadDownNum());
-        service = Executors.newFixedThreadPool(threadNum % 50);//最大50开辟50个线程的线程池
+        //最大50开辟50个线程的线程池
+        service = ThreadUtil.newExecutor(threadNum % 50);
         //任务分发
         int st;
         int end = 0;
-        List<Future<String>> task = new ArrayList<>();//任务监控
+        //任务监控
+        List<Future<String>> task = new ArrayList<>();
         for (int i = 0; i < threadNum; i++) {
-            isShutdown.add(true);//标志正在运行
-            if (i == threadNum - 1) {//最后一次不足每个线程下载章节数量，则全部下载
+            //标志正在运行
+            isShutdown.add(true);
+            //最后一次不足每个线程下载章节数量，则全部下载
+            if (i == threadNum - 1) {
                 st = end;
                 end = book.getChapters().size();
             } else {//每次增加配置数量
@@ -71,8 +88,10 @@ public class AudioDownloader implements DownloadAdapter {
                 end += config.getPerThreadDownNum();
             }
             final int taskId = i;
-            final int sIndex = st;//开始下标
-            final int eIndex = end;//结束下标
+            //开始下标
+            final int sIndex = st;
+            //结束下标
+            final int eIndex = end;
             task.add(service.submit(new Callable<String>() {
                 @Override
                 public String call() throws Exception {
@@ -104,21 +123,20 @@ public class AudioDownloader implements DownloadAdapter {
         }
         for (Future<String> future : task) {
             try {
-                future.get();//阻塞等待完成
+                //阻塞等待完成
+                future.get();
             } catch (Exception e) {
-                System.out.println("线程异常终止");//下载失败
+                //下载失败
+                System.out.println("线程异常终止");
             }
         }
-        service.shutdown();//销毁线程池
+        //销毁线程池
+        service.shutdown();
     }
 
     //下载器
     private void download(String path, String src) throws IOException {
-        File file = new File(path);
-        if (!file.exists()) {
-            file.getParentFile().mkdirs();
-            file.createNewFile();
-        }
+        File file = FileUtil.file(path);
         URL url = new URL(src);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(10000);
@@ -129,15 +147,7 @@ public class AudioDownloader implements DownloadAdapter {
         } else {
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
         }
-        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(path));
-        BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
-        byte[] buffer = new byte[1024 * 1024];//1M缓冲区
-        int count = 0;
-        while ((count = in.read(buffer)) > 0) {
-            out.write(buffer, 0, count);
-        }
-        out.close();/*后面三行为关闭输入输出流以及网络资源的固定格式*/
-        in.close();
+        IoUtil.copy(connection.getInputStream(), FileUtil.getOutputStream(path));
         connection.disconnect();
     }
 
@@ -187,6 +197,6 @@ public class AudioDownloader implements DownloadAdapter {
         if (src.contains("m4a")) {
             suffix = ".m4a";
         }
-        return config.getPath() + "/" + book.getChapters().get(index).getTitle() + suffix;
+        return config.getPath() +File.separator+ book.getChapters().get(index).getTitle() + suffix;
     }
 }

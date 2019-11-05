@@ -1,6 +1,9 @@
-package com.unclezs.Utils;
+package com.unclezs.utils;
 
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IoUtil;
+import cn.hutool.http.HttpUtil;
 import info.monitorenter.cpdetector.io.CodepageDetectorProxy;
 import info.monitorenter.cpdetector.io.JChardetFacade;
 
@@ -11,7 +14,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class FileUtil {
+public class OsUtil {
     /**
      * 判断文件是否存在
      *
@@ -92,31 +95,30 @@ public class FileUtil {
     //下载文件
     public static String uploadFile(String path, String uri, int size) {
         try {
-            File file = new File(path);
-            if (!file.exists()) {
-                file.getParentFile().mkdirs();
-                file.createNewFile();
-            }
-            URL url = new URL(uri);/*将网络资源地址传给,即赋值给url*/
+            File file = FileUtil.file(path);
+            /*将网络资源地址传给,即赋值给url*/
+            URL url = new URL(uri);
             /*此为联系获得网络资源的固定格式用法，以便后面的in变量获得url截取网络资源的输入流*/
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setReadTimeout(10000);
             connection.setConnectTimeout(10000);
-            BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
-            /*此处也可用BufferedInputStream与BufferedOutputStream*/
-            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(path));
-            /*将参数savePath，即将截取的图片的存储在本地地址赋值给out输出流所指定的地址*/
-            byte[] buffer = new byte[size];
-            int count = 0;
-            /*将输入流以字节的形式读取并写入buffer中*/
-            while ((count = in.read(buffer)) > 0) {
-                out.write(buffer, 0, count);
-            }
-            out.close();/*后面三行为关闭输入输出流以及网络资源的固定格式*/
-            in.close();
-            connection.disconnect();
+//            BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
+//            /*此处也可用BufferedInputStream与BufferedOutputStream*/
+//            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(path));
+//            /*将参数savePath，即将截取的图片的存储在本地地址赋值给out输出流所指定的地址*/
+//            byte[] buffer = new byte[size];
+//            int count = 0;
+//            /*将输入流以字节的形式读取并写入buffer中*/
+//            while ((count = in.read(buffer)) > 0) {
+//                out.write(buffer, 0, count);
+//            }
+//            out.close();/*后面三行为关闭输入输出流以及网络资源的固定格式*/
+//            in.close();
             //返回内容是保存后的完整的URL
-            return file.getAbsolutePath();/*网络资源截取并存储本地成功返回true*/
+            /*网络资源截取并存储本地成功返回true*/
+            IoUtil.copy(connection.getInputStream(), FileUtil.getOutputStream(file));
+            connection.disconnect();
+            return file.getAbsolutePath();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,11 +142,12 @@ public class FileUtil {
      */
     public static String mergeFiles(String name, String path, String tempPath, String code) {
         // 过滤出分块文件
-        File temPath = new File(tempPath);//分块目录
+        //分块目录
+        File temPath = new File(tempPath);
         File[] files = temPath.listFiles(pathname -> {
-            if (pathname.getName().split("\\-").length < 2)
+            if (pathname.getName().split("\\-").length < 2) {
                 return false;
-            else {
+            } else {
                 return true;
             }
         });
@@ -152,7 +155,7 @@ public class FileUtil {
         int x = 1;
         while (new File(fp + ".txt").exists()) {
             if (fp.matches(".+?[(].+?[)]")) {
-                fp=fp.substring(0,fp.length()-3)+"(" + x + ")";
+                fp = fp.substring(0, fp.length() - 3) + "(" + x + ")";
             } else {
                 fp = fp + "(" + x + ")";
             }
@@ -167,8 +170,9 @@ public class FileUtil {
                 BufferedReader buf = new BufferedReader(
                         new InputStreamReader(new FileInputStream(file.getAbsolutePath()), code));
                 String line;
-                while ((line = buf.readLine()) != null)
+                while ((line = buf.readLine()) != null) {
                     out.println(line);
+                }
                 out.println();
                 buf.close();
             }
@@ -180,10 +184,16 @@ public class FileUtil {
         }
     }
 
-    //删除文件夹
+    /**
+     * 删除文件夹
+     *
+     * @param dir 文件夹
+     * @return
+     */
     public static boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
-            String[] children = dir.list(); // 递归删除目录中的子目录下
+            // 递归删除目录中的子目录下
+            String[] children = dir.list();
             for (int i = 0; i < children.length; i++) {
                 if (!deleteDir(new File(dir, children[i]))) {
                     return false;
@@ -199,7 +209,9 @@ public class FileUtil {
         return bDeleted;
     }
 
-    // 排序合并文件的序列
+    /**
+     * 排序合并文件的序列
+     */
     private static class FileSort implements Comparator<File> {
         @Override
         public int compare(File o1, File o2) {

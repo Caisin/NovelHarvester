@@ -1,4 +1,4 @@
-package com.unclezs.UI.Utils;
+package com.unclezs.ui.utils;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;

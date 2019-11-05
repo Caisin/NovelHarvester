@@ -1,4 +1,4 @@
-package com.unclezs.Model;
+package com.unclezs.model;
 
 import java.util.List;
 

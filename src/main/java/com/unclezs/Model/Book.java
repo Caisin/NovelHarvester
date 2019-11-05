@@ -1,4 +1,4 @@
-package com.unclezs.Model;
+package com.unclezs.model;
 
 /*
  *小说信息

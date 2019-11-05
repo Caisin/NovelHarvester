@@ -1,9 +1,9 @@
-package com.unclezs.UI.Controller;
+package com.unclezs.ui.controller;
 
-import com.unclezs.UI.Node.ProgressFrom;
-import com.unclezs.UI.Utils.ContentUtil;
-import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.UI.Utils.LayoutUitl;
+import com.unclezs.ui.node.ProgressFrom;
+import com.unclezs.ui.utils.ContentUtil;
+import com.unclezs.ui.utils.DataManager;
+import com.unclezs.ui.utils.LayoutUitl;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-/*
+/**
  *主页
  *@author unclezs.com
  *@date 2019.06.20 23:46

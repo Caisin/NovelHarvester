@@ -1,18 +1,19 @@
-package com.unclezs.UI.Controller;
+package com.unclezs.ui.controller;
 
+import cn.hutool.core.thread.ThreadUtil;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXRadioButton;
 import com.jfoenix.controls.JFXToggleButton;
-import com.unclezs.Mapper.SettingMapper;
-import com.unclezs.Model.DownloadConfig;
-import com.unclezs.UI.Node.ProgressFrom;
-import com.unclezs.UI.Utils.AlertUtil;
-import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.UI.Utils.ToastUtil;
-import com.unclezs.Utils.ConfUtil;
-import com.unclezs.Utils.MybatisUtil;
-import com.unclezs.Utils.ProxyUtil;
+import com.unclezs.mapper.SettingMapper;
+import com.unclezs.model.DownloadConfig;
+import com.unclezs.ui.node.ProgressFrom;
+import com.unclezs.ui.utils.AlertUtil;
+import com.unclezs.ui.utils.DataManager;
+import com.unclezs.ui.utils.ToastUtil;
+import com.unclezs.utils.ConfUtil;
+import com.unclezs.utils.MybatisUtil;
+import com.unclezs.utils.ProxyUtil;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -25,10 +26,11 @@ import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-/*
- *设置控制器
- *@author unclezs.com
- *@date 2019.07.07 11:52
+/**
+ * 设置控制器
+ *
+ * @author unclezs.com
+ * @date 2019.07.07 11:52
  */
 public class SettingController implements Initializable {
     @FXML
@@ -38,9 +40,9 @@ public class SettingController implements Initializable {
     @FXML
     JFXRadioButton dmobi, depub, dtxt;
     @FXML
-    JFXButton testProxy,saveProxy;
+    JFXButton testProxy, saveProxy;
     @FXML
-    TextField proxyPort,proxyHost;
+    TextField proxyPort, proxyHost;
     @FXML
     Label pathLabel, changePath;
 
@@ -56,7 +58,8 @@ public class SettingController implements Initializable {
         initEventHandler();
     }
 
-    void initData() {//初始化数据
+    //初始化数据
+    void initData() {
         for (int i = 0; i < 30; i++) {
             delay.getItems().add(i);
         }
@@ -70,7 +73,8 @@ public class SettingController implements Initializable {
         config = mapper.querySetting();
         MybatisUtil.getCurrentSqlSession().close();
         merge.setSelected(config.isMergeFile());
-        merge.setDisableVisualFocus(true);//禁用焦点过渡
+        //禁用焦点过渡
+        merge.setDisableVisualFocus(true);
         chapterNum.setValue(config.getPerThreadDownNum());
         delay.setValue(config.getSleepTime() / 1000);
         pathLabel.setText(config.getPath());
@@ -91,8 +95,10 @@ public class SettingController implements Initializable {
         proxyHost.setText(ConfUtil.get(ConfUtil.PROXY_HOSTNAME));
     }
 
-    //初始化事件监听
-    void initEventHandler() {
+    /**
+     * 初始化事件监听
+     */
+    private void initEventHandler() {
         //值改变监听
         merge.selectedProperty().addListener(e -> {
             config.setMergeFile(merge.isSelected());
@@ -107,8 +113,9 @@ public class SettingController implements Initializable {
             //文件选择
             DirectoryChooser chooser = new DirectoryChooser();
             File dir = new File(config.getPath());
-            if (dir.exists())
+            if (dir.exists()) {
                 chooser.setInitialDirectory(dir);
+            }
             chooser.setTitle("选择下载位置");
             File file = chooser.showDialog(DataManager.mainStage);
             //防空
@@ -116,7 +123,7 @@ public class SettingController implements Initializable {
                 return;
             }
             //更新
-            String path = file.getAbsolutePath() + "\\";
+            String path = file.getAbsolutePath() + File.separator;
             pathLabel.setText(path);
             config.setPath(path);
         });
@@ -129,45 +136,45 @@ public class SettingController implements Initializable {
         depub.selectedProperty().addListener(e -> {
             config.setFormat("epub");
         });
-        autoImport.selectedProperty().addListener(e->{
-            ConfUtil.set(ConfUtil.USE_ANALYSIS_PASTE,autoImport.isSelected()+"");
+        autoImport.selectedProperty().addListener(e -> {
+            ConfUtil.set(ConfUtil.USE_ANALYSIS_PASTE, autoImport.isSelected() + "");
         });
-        testProxy.setOnMouseClicked(e->{
+        testProxy.setOnMouseClicked(e -> {
             String host = proxyHost.getText();
             String port = proxyPort.getText();
-            Task<String> task=new Task<String>() {
+            Task<String> task = new Task<String>() {
                 @Override
                 protected String call() throws Exception {
-                    return  ProxyUtil.testProxy(host, port);
+                    return ProxyUtil.testProxy(host, port);
                 }
             };
-            ProgressFrom pf=new ProgressFrom(DataManager.settingStage,task);
+            ProgressFrom pf = new ProgressFrom(DataManager.settingStage, task);
             pf.activateProgressBar();
-            task.setOnSucceeded(es->{
+            task.setOnSucceeded(es -> {
                 pf.cancelProgressBar();
-                if(task.getValue()==null){
+                if (task.getValue() == null) {
                     ToastUtil.toast("代理无效");
-                }else {
-                    AlertUtil.getAlert("代理信息",task.getValue()).show();
+                } else {
+                    AlertUtil.getAlert("代理信息", task.getValue()).show();
                 }
             });
         });
 
-        saveProxy.setOnMouseClicked(e->{
+        saveProxy.setOnMouseClicked(e -> {
             String host = proxyHost.getText();
             String port = proxyPort.getText();
-            ConfUtil.set(ConfUtil.PROXY_HOSTNAME,host);
-            ConfUtil.set(ConfUtil.PROXY_PORT,port);
-            ToastUtil.toast("保存成功",DataManager.settingStage);
+            ConfUtil.set(ConfUtil.PROXY_HOSTNAME, host);
+            ConfUtil.set(ConfUtil.PROXY_PORT, port);
+            ToastUtil.toast("保存成功", DataManager.settingStage);
         });
     }
 
     //保存更新设置
     public static void updateSetting() {
-        new Thread(() -> {
+        ThreadUtil.execute(() -> {
             SettingMapper mapper = MybatisUtil.getMapper(SettingMapper.class);
             mapper.updateSetting(config);
             MybatisUtil.getCurrentSqlSession().close();
-        }).start();
+        });
     }
 }

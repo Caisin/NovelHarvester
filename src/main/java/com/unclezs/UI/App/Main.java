@@ -1,7 +1,7 @@
-package com.unclezs.UI.App;
+package com.unclezs.ui.app;
 
-import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.UI.Utils.HotKeyUtil;
+import com.unclezs.ui.utils.DataManager;
+import com.unclezs.ui.utils.HotKeyUtil;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

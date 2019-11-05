@@ -1,4 +1,4 @@
-package com.unclezs.Utils;
+package com.unclezs.utils;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
@@ -13,7 +13,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
 
-/*
+/**
  *@author unclezs.com
  *@date 2019.06.28 11:05
  */
@@ -23,11 +23,11 @@ public class HtmlUnitUtil {
         //屏蔽日志
         LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log","org.apache.commons.logging.impl.NoOpLog");
         java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
-        //
         try (WebClient webClient = new WebClient(BrowserVersion.CHROME)) {
             webClient.getOptions().setThrowExceptionOnScriptError(false);//当JS执行出错的时候是否抛出异常, 这里选择不需要
             webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);//当HTTP的状态非200时是否抛出异常, 这里选择不需要
             webClient.getOptions().setActiveXNative(false);
+            webClient.getOptions().setRedirectEnabled(true);
             webClient.getOptions().setCssEnabled(false);//是否启用CSS, 因为不需要展现页面, 所以不需要启用
             webClient.getOptions().setJavaScriptEnabled(true); //很重要，启用JS
             webClient.setAjaxController(new NicelyResynchronizingAjaxController());//很重要，设置支持AJAX
@@ -36,7 +36,7 @@ public class HtmlUnitUtil {
             WebRequest request=new WebRequest(new URL(url));
             ProxyUtil.proxyHtmlUnit(request);
             final HtmlPage page = webClient.getPage(request);
-            webClient.waitForBackgroundJavaScript(5000);//异步JS执行需要耗时,所以这里线程要阻塞30秒,等待异步JS执行结束
+            webClient.waitForBackgroundJavaScript(8000);//异步JS执行需要耗时,所以这里线程要阻塞30秒,等待异步JS执行结束
             return page;
         } catch (Exception e){
             System.out.println("动态网页抓取失败"+url);

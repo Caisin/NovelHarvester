@@ -1,14 +1,14 @@
-package com.unclezs.UI.Controller;
+package com.unclezs.ui.controller;
 
 import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXProgressBar;
-import com.unclezs.Adapter.DownloadAdapter;
-import com.unclezs.Mapper.DownHistoryMapper;
-import com.unclezs.Model.DownloadHistory;
-import com.unclezs.UI.Node.DownloadedNode;
-import com.unclezs.UI.Node.DownloadingNode;
-import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.Utils.MybatisUtil;
+import com.unclezs.adapter.DownloadAdapter;
+import com.unclezs.mapper.DownHistoryMapper;
+import com.unclezs.model.DownloadHistory;
+import com.unclezs.ui.node.DownloadedNode;
+import com.unclezs.ui.node.DownloadingNode;
+import com.unclezs.ui.utils.DataManager;
+import com.unclezs.utils.MybatisUtil;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;

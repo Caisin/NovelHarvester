@@ -1,10 +1,10 @@
-package com.unclezs.UI.App;
+package com.unclezs.ui.app;
 /*
  *@author unclezs.com
  *@date 2019.06.22 14:48
  */
 
-import com.unclezs.UI.Utils.DataManager;
+import com.unclezs.ui.utils.DataManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Cursor;

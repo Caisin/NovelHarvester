@@ -1,13 +1,17 @@
-package com.unclezs.Crawl;
+package com.unclezs.crawl;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.unclezs.Model.AnalysisConfig;
-import com.unclezs.Model.AudioBook;
-import com.unclezs.Model.AudioChapter;
-import com.unclezs.Utils.Config;
-import com.unclezs.Utils.HtmlUtil;
-import com.unclezs.Utils.HttpUtil;
+import com.alibaba.fastjson.JSONObject;
+import com.unclezs.constrant.Charsets;
+import com.unclezs.constrant.Patterns;
+import com.unclezs.model.AnalysisConfig;
+import com.unclezs.model.AudioBook;
+import com.unclezs.model.AudioChapter;
+import com.unclezs.utils.Config;
+import com.unclezs.utils.HtmlUtil;
+import com.unclezs.utils.HttpUtil;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
@@ -77,7 +81,7 @@ public class AudioNovelSpider {
                 //标题
                 String title;
                 Element elementTitle = li.select(conf.getProperty(site + "_title")).first();
-                if (site.equals("ting55")||site.equals("ting22")) {//恋听网标题特殊处理
+                if (site.equals("ting55") || site.equals("ting22")) {//恋听网标题特殊处理
                     title = elementTitle.text();
                 } else {
                     title = elementTitle.ownText();
@@ -131,17 +135,20 @@ public class AudioNovelSpider {
                 //根据搜索类型确定结果
                 switch (keyType) {
                     case "书名":
-                        if (title.contains(keyWord)) {//包含搜索关键字才添加,失效不添加
+                        //包含搜索关键字才添加,失效不添加
+                        if (title.contains(keyWord)) {
                             list.add(new AudioBook(author.trim(), speak.trim(), title.trim(), img, homeUrl.trim()));
                         }
                         break;
                     case "作者":
-                        if (author.contains(keyWord)) {//包含搜索关键字才添加,失效不添加
+                        //包含搜索关键字才添加,失效不添加
+                        if (author.contains(keyWord)) {
                             list.add(new AudioBook(author.trim(), speak.trim(), title.trim(), img, homeUrl.trim()));
                         }
                         break;
                     case "播音":
-                        if (speak.contains(keyWord)) {//包含搜索关键字才添加,失效不添加
+                        //包含搜索关键字才添加,失效不添加
+                        if (speak.contains(keyWord)) {
                             list.add(new AudioBook(author.trim(), speak.trim(), title.trim(), img, homeUrl.trim()));
                         }
                         break;
@@ -157,7 +164,11 @@ public class AudioNovelSpider {
         return list;
     }
 
-    //获取章节列表
+    /**
+     * 获取章节列表
+     * @param url 链接
+     * @return 列表
+     */
     public List<AudioChapter> getChapters(String url) {
         //懒人听书
         if (url.contains("lrts")) {
@@ -170,9 +181,12 @@ public class AudioNovelSpider {
         String html = HtmlUtil.getHtml(url, charset);
         //解析
         Document document = Jsoup.parse(html);
-        document.setBaseUri(url);//根域名
-        String[] s = conf.getProperty(key).split(",");//css选择器
-        Elements elements = document.select(s[0]).get(Integer.parseInt(s[1])).select(s[2]);//读取配置
+        //根域名
+        document.setBaseUri(url);
+        //css选择器
+        String[] s = conf.getProperty(key).split(",");
+        //读取配置
+        Elements elements = document.select(s[0]).get(Integer.parseInt(s[1])).select(s[2]);
         for (Element a : elements) {
             chapters.add(new AudioChapter(a.absUrl("href"), a.text()));
         }
@@ -213,9 +227,11 @@ public class AudioNovelSpider {
             case "ting22":
                 realUrl = getTING22(url);
                 break;
+            default:
+                break;
         }
         try {
-            return com.unclezs.Utils.URLEncoder.encode(realUrl, "utf-8");
+            return com.unclezs.utils.URLEncoder.encode(realUrl, "utf-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -242,7 +258,7 @@ public class AudioNovelSpider {
             return "tingchina";
         } else if (url.contains("lrts")) {
             return "lrts";
-        }else if (url.contains("ting22")) {
+        } else if (url.contains("ting22")) {
             return "ting22";
         } else {
             return "uncle";
@@ -253,7 +269,7 @@ public class AudioNovelSpider {
     private String get520TINGSHU(String curl) {
         String host = curl.substring(0, curl.indexOf("com") + 4);
         String html = HtmlUtil.getSource(curl, "gb2312", curl, null);
-        Pattern pattern = Pattern.compile("\"(/playdata/.+?js.*?)\"");
+        Pattern pattern = Patterns.TS8_REG;
         Matcher m = pattern.matcher(html);
         m.find();
         String jsUrl = host + m.group(1);
@@ -281,36 +297,37 @@ public class AudioNovelSpider {
     //有声听书吧
     private String getYSTS8(String curl) {
         //章节源码爬取
-        String chtml = HtmlUtil.getSource(curl, "gbk", curl, null);
-        Pattern p = Pattern.compile("<iframe src=\"(.+?)\"");
+        String chtml = HtmlUtil.getSource(curl, Charsets.GBK, curl, null);
+        Pattern p = Patterns.YSTS8_REG;
         Matcher m = p.matcher(chtml);
         m.find();
         //找到真正所在源码网址
         String url = "https://www.ysts8.com" + m.group(1);//真正章节网址
         String prefix = null;
         try {
-            prefix = URLDecoder.decode(url.substring(url.indexOf("=") + 1, url.indexOf("&")), "gbk") + "?";
+            prefix = URLDecoder.decode(url.substring(url.indexOf("=") + 1, url.indexOf("&")), Charsets.GBK) + "?";
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         //匹配出真实音频url
-        String html = HtmlUtil.getHtml(url, "gbk");
+        String html = HtmlUtil.getHtml(url, Charsets.GBK);
 
         String host = "http://180d.ysts8.com:8000";
-        p = Pattern.compile("[?']([0-9a-zA-Z]+?-[0-9a-zA-Z]+?)[?']");
+        p = Patterns.YSTS8_REG1;
         m = p.matcher(html);
         m.find();
-        String realUrl = host + "/" + prefix + m.group(1);//真实URL  m.group(1)加密码
+        //真实URL  m.group(1)加密码
+        String realUrl = host + "/" + prefix + m.group(1);
         return realUrl;
     }
 
     //56听书网
     private String getTING56(String url) {
-        String html = HtmlUtil.getSource(url, "gbk", url, null);
-        Pattern pattern = Pattern.compile("FonHen_JieMa[(]'([\\s\\S]+?)'");
+        String html = HtmlUtil.getSource(url, Charsets.GBK, url, null);
+        Pattern pattern = Patterns.TING56_REG;
         Matcher m = pattern.matcher(html);
         m.find();
-        String res =getCodeString(m.group(1));
+        String res = getCodeString(m.group(1));
         String realUrl;
         //解密
         String[] datas = res.split("&");//初步数据
@@ -341,10 +358,27 @@ public class AudioNovelSpider {
     //恋听网
     private String getTING55(String url) {
         String html = HtmlUtil.getSource(url, "utf-8", url, null);
-        Pattern p = Pattern.compile("var a=[{].+?\"(.+?)\"");
+        Pattern p = Pattern.compile("<meta name=\"_c\" content=\"(.+?)\"");
         Matcher m = p.matcher(html);
+        String xt;
         if (m.find()) {
-            return m.group(1);
+            xt= m.group(1);
+            String[] info=url.substring(url.lastIndexOf("/")+1).split("\\-");
+            String body = cn.hutool.http.HttpUtil
+                    .createPost("https://ting55.com/glink")
+                    .header("xt", xt)
+                    .header("Referer", url)
+                    .header("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
+                    .form("bookId",info[0])
+                    .form("isPay","0")
+                    .form("page",info[1])
+                    .execute().body();
+            JSONObject jsonObject = JSON.parseObject(body);
+            String res=jsonObject.getString("url");
+            if(StrUtil.isEmpty(res)){
+                res=jsonObject.getString("ourl");
+            }
+            return res;
         }
         return "";
     }
@@ -372,7 +406,7 @@ public class AudioNovelSpider {
         if (m.find()) {
             String link = null;
             try {
-                link = com.unclezs.Utils.URLEncoder.encode("http://www.tingchina.com" + m.group(1), "gb2312");
+                link = com.unclezs.utils.URLEncoder.encode("http://www.tingchina.com" + m.group(1), "gb2312");
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
@@ -399,42 +433,40 @@ public class AudioNovelSpider {
 
     //22听书网
     public String getTING22(String url) {
-        String bookId = url.substring(url.lastIndexOf("/") + 1, url.indexOf("-"));
-        int chapter_number = Integer.parseInt(url.substring(url.lastIndexOf("-") + 1, url.indexOf(".ht")));
-        int page=chapter_number/10;
-        if(chapter_number/10==0){
-            page+=1;
-        }
-        if(chapter_number%10==0){
-            page-=1;
-        }
-
-        int pageIndex = (chapter_number-1) % 10;
+        String[] query = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf(".")).split("\\-");
+        int chapterNumber = Integer.parseInt(query[1]);
+        int page = (int)Math.ceil(chapterNumber*1.0f / 10);
+        int pageIndex = (chapterNumber - 1) % 10;
         //音频地址API
-        String api = "https://www.ting22.com/api.php?c=Json&page="+page+"&pagesize=10&callback=unclezs&id=" + bookId;
+        String api = "https://www.ting22.com/api.php?c=Json&page=" + page + "&pagesize=10&callback=unclezs&id=" + query[0];
         Map<String, String> headers = new HashMap<>(2);
         headers.put(Config.Referer, url);
-        headers.put("sign", new Date().getTime() + "");
+        headers.put("sign", System.currentTimeMillis() + "");
         //获取URL加密Code
         String code = JSON.parseObject(HtmlUtil.getHtmlSource(api, "utf-8", headers).substring(8).replace(");", "")).getJSONArray("playlist").getJSONObject(pageIndex).getString("file");
         //解密
-        code=getCodeString(code);
+        code = getCodeString(code);
         //根据类型获取真实音频地址
-        String realUrl="";
+        String realUrl = "";
         String[] tempUrl = code.split("[$]");
-        if(tempUrl.length==2){//不是默认真实音频地址的，需要另外解析
-            switch (tempUrl[1]){
-                case "tc"://yousheng/29545/0$tc
+        //不是默认真实音频地址的，需要另外解析
+        if (tempUrl.length == 2) {
+            switch (tempUrl[1]) {
+                //yousheng/29545/0$tc
+                case "tc":
                     String[] data = tempUrl[0].split("/");
-                    String tc_api=data[0] + "/" + data[1] + "/play_" + data[1] + "_" + data[2] + ".htm";
-                    realUrl = JSON.parseObject(HtmlUtil.getHtml("https://c.ting22.com/tingchina.php?file="+tc_api, "utf-8")).getString("url");
+                    String tc_api = data[0] + "/" + data[1] + "/play_" + data[1] + "_" + data[2] + ".htm";
+                    realUrl = JSON.parseObject(HtmlUtil.getHtml("https://c.ting22.com/tingchina.php?file=" + tc_api, "utf-8")).getString("url");
                     break;
-                case "xm":// 19576598/139592587$xm
-                    realUrl="http://mobile.ximalaya.com/mobile/redirect/free/play/"+tempUrl[0].split("/")[1]+"/0";
+                // 19576598/139592587$xm
+                case "xm":
+                    realUrl = "http://mobile.ximalaya.com/mobile/redirect/free/play/" + tempUrl[0].split("/")[1] + "/0";
+                    break;
+                default:
                     break;
             }
-        }else {
-            realUrl=tempUrl[0];
+        } else {
+            realUrl = tempUrl[0];
         }
         return realUrl;
     }
@@ -443,18 +475,24 @@ public class AudioNovelSpider {
         List<AudioChapter> chapters = new ArrayList<>(100);
         String bookId = url.substring(url.lastIndexOf("/") + 1);
         String html = HtmlUtil.getHtml(url, "utf-8");
-        Pattern pattern = Pattern.compile("章节：</span>(.+?)</li>");
+        Pattern pattern = Patterns.LRTS_REG;
         Matcher m = pattern.matcher(html);
-        m.find();
-        int pageNum = Integer.parseInt(m.group(1));//章节总数
-        for (int i = 1; i <= pageNum; i++) {
-            chapters.add(new AudioChapter("http://www.lrts.me/ajax/playlist/2/" + bookId + "/" + i, "" + i));
+        if (m.find()) {
+            //章节总数
+            int pageNum = Integer.parseInt(m.group(1));
+            for (int i = 1; i <= pageNum; i++) {
+                chapters.add(new AudioChapter("http://www.lrts.me/ajax/playlist/2/" + bookId + "/" + i, "" + i));
+            }
         }
         return chapters;
     }
 
-    //将45*48*78类的转字符
-    private String getCodeString(String src){
+    /**
+     * 将45*48*78类的转字符
+     * @param src
+     * @return
+     */
+    private String getCodeString(String src) {
         String[] u = src.split("[*]");
         String res = "";
         for (String s : u) {

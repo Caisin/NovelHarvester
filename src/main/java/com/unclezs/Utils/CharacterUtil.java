@@ -1,4 +1,4 @@
-package com.unclezs.Utils;
+package com.unclezs.utils;
 
 import com.luhuiguo.chinese.ChineseUtils;
 

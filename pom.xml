@@ -73,6 +73,11 @@
             <version>2.6</version>
         </dependency>
         <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>4.6.10</version>
+        </dependency>
+        <dependency>
             <groupId>net.sourceforge.htmlunit</groupId>
             <artifactId>htmlunit</artifactId>
             <version>2.35.0</version>
@@ -97,7 +102,7 @@
     <properties>
         <app.filename>Uncle小说</app.filename>
         <!--运行的主类-->
-        <app.mainClass>com.unclezs.UI.App.Main</app.mainClass>
+        <app.mainClass>com.unclezs.ui.app.Main</app.mainClass>
         <!--FXLauncher运行后文件下载的位置-->
         <app.cacheDir>./lib</app.cacheDir>
         <!--FXLauncher运行时候的参数，比如什么更新失败后继续打开程序之类的，有哪些看官方的Readme里面-->

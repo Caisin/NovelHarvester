@@ -1,23 +1,25 @@
-package com.unclezs.UI.Controller;
+package com.unclezs.ui.controller;
 
-import com.unclezs.Crawl.LocalNovelLoader;
-import com.unclezs.Crawl.NovelSpider;
-import com.unclezs.Crawl.WebNovelLoader;
-import com.unclezs.Mapper.AnalysisMapper;
-import com.unclezs.Mapper.ChapterMapper;
-import com.unclezs.Mapper.NovelMapper;
-import com.unclezs.Mapper.ReaderMapper;
-import com.unclezs.Model.Book;
-import com.unclezs.UI.App.Reader;
-import com.unclezs.UI.Node.BookNode;
-import com.unclezs.UI.Node.ProgressFrom;
-import com.unclezs.UI.Utils.ContentUtil;
-import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.UI.Utils.LayoutUitl;
-import com.unclezs.UI.Utils.ToastUtil;
-import com.unclezs.Utils.FileUtil;
-import com.unclezs.Utils.MybatisUtil;
-import com.unclezs.Utils.OBJUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.http.HttpUtil;
+import com.unclezs.crawl.LocalNovelLoader;
+import com.unclezs.crawl.NovelSpider;
+import com.unclezs.crawl.WebNovelLoader;
+import com.unclezs.mapper.AnalysisMapper;
+import com.unclezs.mapper.ChapterMapper;
+import com.unclezs.mapper.NovelMapper;
+import com.unclezs.mapper.ReaderMapper;
+import com.unclezs.model.Book;
+import com.unclezs.ui.app.Reader;
+import com.unclezs.ui.node.BookNode;
+import com.unclezs.ui.node.ProgressFrom;
+import com.unclezs.ui.utils.ContentUtil;
+import com.unclezs.ui.utils.DataManager;
+import com.unclezs.ui.utils.LayoutUitl;
+import com.unclezs.ui.utils.ToastUtil;
+import com.unclezs.utils.OsUtil;
+import com.unclezs.utils.MybatisUtil;
+import com.unclezs.utils.OBJUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -32,12 +34,16 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.ibatis.session.SqlSession;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /*
  *书架页面
@@ -151,8 +157,8 @@ public class BookSelfController implements Initializable {
                 LocalNovelLoader loader = new LocalNovelLoader(path);
                 String name = loader.getName();
                 String img = spider.crawlDescImage(name);
-                String imgPath = FileUtil.uploadFile("./image/" + name + ".jpg", img);
-                System.out.println(imgPath);
+                String imgPath= FileUtil.file("./image/" + name + ".jpg").getAbsolutePath();
+                HttpUtil.downloadFile(img,imgPath);
                 //存库
                 NovelMapper novelMapper = MybatisUtil.getMapper(NovelMapper.class);
                 novelMapper.save(new Book(name, path, imgPath));//添加
@@ -259,13 +265,18 @@ public class BookSelfController implements Initializable {
         });
     }
 
-    //打开一本书
+    /**
+     * 打开一本书
+     *
+     * @param book
+     */
     private void openBook(Book book) {
-        if (isLoading == true) {
+        if (isLoading) {
             ToastUtil.toast("书籍打开中");
             return;
         }
-        isLoading = true;//正在加载一次只能打开一本书
+        //正在加载一次只能打开一本书
+        isLoading = true;
         //加载loading动画
         Task openBook = new Task() {
             @Override
@@ -315,16 +326,10 @@ public class BookSelfController implements Initializable {
             isLoading = false;
         });
         openBook.setOnCancelled(e -> isLoading = false);
-        openBook.setOnFailed(e->isLoading=false);
+        openBook.setOnFailed(e -> isLoading = false);
         //计时任务
-        TimerTask t=new TimerTask() {
-            @Override
-            public void run() {
-                isLoading=false;
-            }
-        };
-        Timer timer=new Timer();
-        timer.schedule(t,15000);
+        ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1, new BasicThreadFactory.Builder().namingPattern("closeTask").build());
+        service.schedule(() -> isLoading = false, 15, TimeUnit.SECONDS);
     }
 
     //重命名书籍
@@ -342,7 +347,9 @@ public class BookSelfController implements Initializable {
                     MybatisUtil.getCurrentSqlSession().close();
                     //获取新的封面
                     String imgUrl = spider.crawlDescImage(newName);
-                    String path = FileUtil.uploadFile("./image/" + newName + ".jpg", imgUrl);
+                    File file= FileUtil.file("./image/" + newName + ".jpg");
+                    HttpUtil.downloadFile(imgUrl,file);
+                    String path = file.getAbsolutePath();
                     //更新库
                     MybatisUtil.getMapper(NovelMapper.class).updateBookCover(book.getBook().getId(), path);
                     MybatisUtil.getCurrentSqlSession().close();
@@ -390,7 +397,10 @@ public class BookSelfController implements Initializable {
         }
     }
 
-    //复制链接
+    /**
+     * 复制链接
+     * @param book
+     */
     private void copyLink(BookNode book) {
         Clipboard cb = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
@@ -398,13 +408,19 @@ public class BookSelfController implements Initializable {
         cb.setContent(content);
     }
 
-    //获取输入框
+    /**
+     * 获取输入框
+     * @param title
+     * @return
+     */
     private TextInputDialog getInputDialog(String title) {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle(title);
         dialog.setHeaderText(null);
-        dialog.getDialogPane().setStyle("-fx-graphic: url('images/1.png');");//去除图标
-        dialog.initModality(Modality.APPLICATION_MODAL);//模态
+        //去除图标
+        dialog.getDialogPane().setStyle("-fx-graphic: url('images/1.png');");
+        //模态
+        dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.initOwner(DataManager.mainStage);
         return dialog;
     }

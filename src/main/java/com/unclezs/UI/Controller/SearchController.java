@@ -1,16 +1,16 @@
-package com.unclezs.UI.Controller;
+package com.unclezs.ui.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXTextField;
-import com.unclezs.Crawl.NovelSpider;
-import com.unclezs.Model.NovelInfo;
-import com.unclezs.UI.Node.ProgressFrom;
-import com.unclezs.UI.Node.SearchNode;
-import com.unclezs.UI.Utils.ContentUtil;
-import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.UI.Utils.ToastUtil;
-import com.unclezs.Utils.HttpUtil;
+import com.unclezs.crawl.NovelSpider;
+import com.unclezs.model.NovelInfo;
+import com.unclezs.ui.node.ProgressFrom;
+import com.unclezs.ui.node.SearchNode;
+import com.unclezs.ui.utils.ContentUtil;
+import com.unclezs.ui.utils.DataManager;
+import com.unclezs.ui.utils.ToastUtil;
+import com.unclezs.utils.HttpUtil;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;

@@ -1,10 +1,9 @@
-package com.unclezs.UI.Utils;
+package com.unclezs.ui.utils;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Tooltip;
 import javafx.stage.Modality;
 import javafx.util.Duration;
-import sun.nio.cs.ext.MS874;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

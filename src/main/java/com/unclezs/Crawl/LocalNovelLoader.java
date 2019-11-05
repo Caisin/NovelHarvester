@@ -1,7 +1,7 @@
-package com.unclezs.Crawl;
+package com.unclezs.crawl;
 
 
-import com.unclezs.Utils.FileUtil;
+import com.unclezs.utils.OsUtil;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -69,7 +69,7 @@ public class LocalNovelLoader implements Serializable {
 
     //加载读取文件
     String loadFile() throws Exception {
-        String encode = FileUtil.codeFile(path);
+        String encode = OsUtil.codeFile(path);
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), encode));
         String tmp;
         StringBuffer sb = new StringBuffer();

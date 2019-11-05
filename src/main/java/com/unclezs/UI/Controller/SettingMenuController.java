@@ -1,8 +1,8 @@
-package com.unclezs.UI.Controller;
+package com.unclezs.ui.controller;
 
 import com.jfoenix.controls.JFXTabPane;
-import com.unclezs.UI.Utils.AlertUtil;
-import com.unclezs.UI.Utils.DataManager;
+import com.unclezs.ui.utils.AlertUtil;
+import com.unclezs.ui.utils.DataManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;

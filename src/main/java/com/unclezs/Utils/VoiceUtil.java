@@ -1,4 +1,4 @@
-package com.unclezs.Utils;
+package com.unclezs.utils;
 
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.ComThread;

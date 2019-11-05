@@ -1,4 +1,4 @@
-package com.unclezs.Utils;
+package com.unclezs.utils;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;

@@ -1,6 +1,6 @@
-package com.unclezs.Mapper;
+package com.unclezs.mapper;
 
-import com.unclezs.Model.ReaderConfig;
+import com.unclezs.model.ReaderConfig;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;

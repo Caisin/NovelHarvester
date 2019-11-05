@@ -1,9 +1,8 @@
-package com.unclezs.UI.Utils;
+package com.unclezs.ui.utils;
 
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 
 import java.io.IOException;
 

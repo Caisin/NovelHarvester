@@ -17,6 +17,6 @@
         </environment>
     </environments>
     <mappers>
-        <package name="com.unclezs.Mapper"/>
+        <package name="com.unclezs.mapper"/>
     </mappers>
 </configuration>

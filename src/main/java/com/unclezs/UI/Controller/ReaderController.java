@@ -1,19 +1,19 @@
-package com.unclezs.UI.Controller;
+package com.unclezs.ui.controller;
 
 import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXTextArea;
 import com.jfoenix.controls.JFXToggleButton;
-import com.unclezs.Mapper.NovelMapper;
-import com.unclezs.Mapper.ReaderMapper;
-import com.unclezs.Model.ReaderConfig;
-import com.unclezs.UI.App.Reader;
-import com.unclezs.UI.Node.ProgressFrom;
-import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.UI.Utils.LayoutUitl;
-import com.unclezs.UI.Utils.ToastUtil;
-import com.unclezs.UI.Utils.TrayUtil;
-import com.unclezs.Utils.MybatisUtil;
-import com.unclezs.Utils.VoiceUtil;
+import com.unclezs.mapper.NovelMapper;
+import com.unclezs.mapper.ReaderMapper;
+import com.unclezs.model.ReaderConfig;
+import com.unclezs.ui.app.Reader;
+import com.unclezs.ui.node.ProgressFrom;
+import com.unclezs.ui.utils.DataManager;
+import com.unclezs.ui.utils.LayoutUitl;
+import com.unclezs.ui.utils.ToastUtil;
+import com.unclezs.ui.utils.TrayUtil;
+import com.unclezs.utils.MybatisUtil;
+import com.unclezs.utils.VoiceUtil;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -528,10 +528,14 @@ public class ReaderController implements Initializable {
         DataManager.readerConfig.setFontColor(fontcolor);
     }
 
-    //左右点击按键翻页
+    /**
+     * 左右点击按键翻页
+     * @param isRight
+     */
     private void changePage(boolean isRight) {
-        if (isRight) {//向右边翻页，向到底部自动翻页到下一节
-            content.setScrollTop(content.getScrollTop() + content.getHeight() - 20);
+        //向右边翻页，向到底部自动翻页到下一节
+        if (isRight) {
+            content.setScrollTop(content.getScrollTop() + content.getHeight() - 40);
             if (sp.getVvalue() == 1.0) {
                 if (!isPageDownOver) {
                     isPageDownOver = true;
@@ -542,7 +546,7 @@ public class ReaderController implements Initializable {
                 }
             }
         } else {//向左翻页，到底部自动加载上一页
-            content.setScrollTop(content.getScrollTop() - content.getHeight() + 20);
+            content.setScrollTop(content.getScrollTop() - content.getHeight() + 40);
             if (sp.getVvalue() == 0) {
                 if (!isPageTopOver) {
                     isPageTopOver = true;

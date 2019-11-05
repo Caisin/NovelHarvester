@@ -1,8 +1,7 @@
-package com.unclezs.UI.Node;
+package com.unclezs.ui.node;
 
-import com.unclezs.Model.NovelInfo;
+import com.unclezs.model.NovelInfo;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;

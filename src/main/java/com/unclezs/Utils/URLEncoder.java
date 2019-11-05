@@ -1,4 +1,4 @@
-package com.unclezs.Utils;
+package com.unclezs.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.util.regex.Pattern;

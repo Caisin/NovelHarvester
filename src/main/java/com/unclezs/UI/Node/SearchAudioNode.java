@@ -1,9 +1,6 @@
-package com.unclezs.UI.Node;
+package com.unclezs.ui.node;
 
-import com.unclezs.Model.AudioBook;
-import com.unclezs.Model.NovelInfo;
-import com.unclezs.Utils.FileUtil;
-import com.unclezs.Utils.HttpUtil;
+import com.unclezs.model.AudioBook;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -11,10 +8,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import org.jsoup.Jsoup;
-
-import java.io.IOException;
-import java.util.UUID;
 
 
 /*

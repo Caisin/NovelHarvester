@@ -1,4 +1,4 @@
-package com.unclezs.Model;
+package com.unclezs.model;
 
 /*
  *@author unclezs.com

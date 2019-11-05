@@ -1,6 +1,6 @@
-package com.unclezs.Model;
+package com.unclezs.model;
 
-/*
+/**
  *解析小说配置文件
  *@author unclezs.com
  *@date 2019.07.02 23:37

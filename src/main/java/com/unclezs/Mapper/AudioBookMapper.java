@@ -1,6 +1,6 @@
-package com.unclezs.Mapper;
+package com.unclezs.mapper;
 
-import com.unclezs.Model.AudioBook;
+import com.unclezs.model.AudioBook;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;

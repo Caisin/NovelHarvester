@@ -1,7 +1,7 @@
-package com.unclezs.UI.Node;
+package com.unclezs.ui.node;
 
-import com.unclezs.Model.DownloadHistory;
-import com.unclezs.UI.Utils.ToastUtil;
+import com.unclezs.model.DownloadHistory;
+import com.unclezs.ui.utils.ToastUtil;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -12,9 +12,6 @@ import javafx.scene.layout.VBox;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 
 /*

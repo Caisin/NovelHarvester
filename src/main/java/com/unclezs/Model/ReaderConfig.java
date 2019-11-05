@@ -1,4 +1,4 @@
-package com.unclezs.Model;
+package com.unclezs.model;
 
 /*
  *阅读器配置

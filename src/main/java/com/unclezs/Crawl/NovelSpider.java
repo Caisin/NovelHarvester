@@ -1,9 +1,9 @@
-package com.unclezs.Crawl;
+package com.unclezs.crawl;
 
 
-import com.unclezs.Model.AnalysisConfig;
-import com.unclezs.Model.Chapter;
-import com.unclezs.Utils.*;
+import com.unclezs.model.AnalysisConfig;
+import com.unclezs.model.Chapter;
+import com.unclezs.utils.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -21,9 +21,36 @@ import java.util.regex.Pattern;
  * @author Uncle
  */
 public class NovelSpider {
-    private AnalysisConfig conf;//配置信息
+    /**
+     * 中文标点符号
+     */
+    private static final String CH_PUNCTUATION = "~\\u000A\\u0009\\u00A0\\u0020\\u3000\\uFEFF";
+    /**
+     * unicode符号
+     */
+    private static final String UNICODE_AZAZ09 = "\\uFF41-\\uFF5a\\uFF21-\\uFF3a\\uFF10-\\uFF19";
+    /**
+     * 中文
+     */
+    private static final String CHINESE = "\\u4E00-\\u9FFF";
+    /**
+     * 标题正则
+     */
+    private static Pattern TITLE_PATTERN = Pattern.compile("(.{1,10}?)最新");
+    /**
+     * 正文规则1
+     */
+    private static Pattern CONTENT_RULE_1 = Pattern.compile("[pvri\\-/\"]>([^字<*][\\pP\\w\\pN\\pL\\pM" + UNICODE_AZAZ09 + CHINESE + CH_PUNCTUATION + "]{3,}[^字\\w>]{0,2})(<br|</p|</d|<p|<!|<d|</li)", Pattern.CASE_INSENSITIVE);
+    /**
+     * 正文规则2
+     */
+    private static Pattern CONTENT_RULE_2 = Pattern.compile("([^/][\\s\\S]*?>)([\\s\\S]*?)(<)", Pattern.CASE_INSENSITIVE);
+    /**
+     * 配置信息
+     */
+    private AnalysisConfig conf;
     private String defCharset = "utf-8";
-    private String novelTitle = "uncle小说";
+    private String novelTitle = "Uncle小说";
 
     public NovelSpider(AnalysisConfig conf) {
         this.conf = conf;
@@ -37,11 +64,10 @@ public class NovelSpider {
      */
     public String getTitle(String html) {
         String title;
-        Pattern pattern = Pattern.compile("(.{1,10}?)最新");
         Document document = Jsoup.parse(html);
         Element element = document.select("title").first();
         String text = element.text().trim();
-        Matcher m = pattern.matcher(text);
+        Matcher m = TITLE_PATTERN.matcher(text);
         if (m.find()) {
             title = m.group(1);
         } else {
@@ -57,17 +83,21 @@ public class NovelSpider {
      * @return 章节列表
      */
     public List<Chapter> getChapterList(String url) {
-        List<String> urls = new ArrayList<>();//存url
-        Map<String, String> title = new HashMap<>();//存标题
+        //存url
+        List<String> urls = new ArrayList<>();
+        //存标题
+        Map<String, String> title = new HashMap<>();
         List<Chapter> chapters = new ArrayList<>(500);
-        String charset = "gbk";//默认编码
+        //默认编码
+        String charset = "gbk";
         try {
             //抓取源码自动识别网页编码
             String html = getHtml(url, charset);
             charset = HtmlUtil.getEncode(html);
-            if(charset.toLowerCase().contains("gb")){//g2312采用gbk编码更全
-                charset="gbk";
-            }else {//utf-8重新抓取
+            //g2312采用gbk编码更全
+            if (charset.toLowerCase().contains("gb")) {
+                charset = "gbk";
+            } else {//utf-8重新抓取
                 html = getHtml(url, charset);
             }
             //根据用户输入章节头尾删减html
@@ -78,7 +108,8 @@ public class NovelSpider {
             Elements aTags = document.select("a");
             for (Element e : aTags) {
                 String href = e.absUrl("href");
-                if (!"".equals(href.trim()) && !"".equals(e.text().trim())) {//剔除空标签
+                //剔除空标签
+                if (!"".equals(href.trim()) && !"".equals(e.text().trim())) {
                     urls.add(href);
                     title.put(href, e.text().trim());
                 }
@@ -112,10 +143,7 @@ public class NovelSpider {
      */
     public String getContent(String url, String charset) {
         StringBuffer content = new StringBuffer();
-        String ch_punctuation = "~\\u000A\\u0009\\u00A0\\u0020\\u3000\\uFEFF";//中文标点符号
-        String unicode_azAZ09 = "\\uFF41-\\uFF5a\\uFF21-\\uFF3a\\uFF10-\\uFF19";//unicode符号
-        String chinese = "\\u4E00-\\u9FFF";//中文
-        String html = "";
+        String html;
         //抓取网页源码
         html = getHtml(url, charset);
         if (html == null) {
@@ -126,31 +154,37 @@ public class NovelSpider {
         //两种规则爬取
         switch (conf.getRule()) {
             case "1":
-                Pattern compile = Pattern.compile("[pvri\\-/\"]>([^字<*][\\pP\\w\\pN\\pL\\pM"
-                        + unicode_azAZ09 + chinese + ch_punctuation
-                        + "]{3,}[^字\\w>]{0,2})(<br|</p|</d|<p|<!|<d|</li)", Pattern.CASE_INSENSITIVE);
-                Matcher m = compile.matcher(html);
+                Matcher m = CONTENT_RULE_1.matcher(html);
                 while (m.find()) {
-                    String c = "";
-                    if (((c = m.group(1).replaceAll("&[#\\w]{3,6}[;:]{0,1}", " ")).length()) > 0)
+                    String c;
+                    if (((c = m.group(1).replaceAll("&[#\\w]{3,6}[;:]?", " ")).length()) > 0) {
                         content.append(c + "\r\n");
+                    }
                 }
                 break;
             case "2":
-                Pattern compile2 = Pattern.compile("([^/][\\s\\S]*?>)([\\s\\S]*?)(<)", Pattern.CASE_INSENSITIVE);
-                Matcher m2 = compile2.matcher(html);
+                Matcher m2 = CONTENT_RULE_2.matcher(html);
                 while (m2.find()) {
-                    if ((Pattern.matches("[\\s\\S]*?[^字\\w<*][" + chinese + "]{1,}[\\s\\S]*?", m2.group(2)) || Pattern.matches("[\\s\\S]*?&#\\d{4,5}[\\s\\S]*?", m2.group(2)))
-                            && (m2.group(1).endsWith("br />") || m2.group(1).endsWith("br/>") || m2.group(1).endsWith("br>") || m2.group(1).endsWith("abc\">") || m2.group(1).endsWith("p>") || m2.group(1).endsWith("v>") || m2.group(1).endsWith("->"))
-                            && m2.group(2).replaceAll("&[#\\w]{3,6}[;:]{0,1}", " ").trim().length() > 0)
-                        content.append(m2.group(2).replaceAll("&[#\\w]{3,6}[;:]{0,1}", " ") + "\r\n");
+                    boolean pass = (Pattern.matches("[\\s\\S]*?[^字\\w<*][" + CHINESE + "]+[\\s\\S]*?", m2.group(2))
+                            || Pattern.matches("[\\s\\S]*?&#\\d{4,5}[\\s\\S]*?", m2.group(2)))
+                            && (m2.group(1).endsWith("br />")
+                            || m2.group(1).endsWith("br/>")
+                            || m2.group(1).endsWith("br>")
+                            || m2.group(1).endsWith("abc\">")
+                            || m2.group(1).endsWith("p>")
+                            || m2.group(1).endsWith("v>")
+                            || m2.group(1).endsWith("->"))
+                            && m2.group(2).replaceAll("&[#\\w]{3,6}[;:]?", " ").trim().length() > 0;
+                    if (pass) {
+                        content.append(m2.group(2).replaceAll("&[#\\w]{3,6}[;:]?", " ") + "\r\n");
+                    }
                 }
                 break;
             default:
                 Whitelist whitelist = new Whitelist();
                 whitelist.addTags("p", "br", "div");
                 String parse = Jsoup.clean(html, whitelist);
-                parse = parse.replaceAll("&[#\\w]{3,6}[;:]{0,1}", "{空格}");
+                parse = parse.replaceAll("&[#\\w]{3,6}[;:]?", "{空格}");
                 parse = parse.replaceAll("(<br/>|<br>|<br />)", "{换行}");
                 parse = parse.replaceAll("(\n|\r\n|<p>)", "{换行}");
                 parse = parse.replace("　", "");
@@ -169,18 +203,21 @@ public class NovelSpider {
                 break;
         }
         //缩进处理
-        String[] strings = content.toString().split("[\r]{0,1}\n");
+        String[] strings = content.toString().split("[\r]?\n");
         content = new StringBuffer();
         for (String s : strings) {
-            if (s.trim().length() > 0)
+            if (s.trim().length() > 0){
                 content.append("    ").append(s.trim()).append("\r\n\r\n");
+            }
         }
         //转码
         String text = content.toString();
-        if (conf.isNcrToZh()) {//ncr转中文
+        //ncr转中文
+        if (conf.isNcrToZh()) {
             text = CharacterUtil.NCR2Chinese(text);
         }
-        if (conf.isTraToSimple()) {//繁体转简体
+        //繁体转简体
+        if (conf.isTraToSimple()) {
             text = CharacterUtil.traditional2Simple(text);
         }
         //去广告
@@ -190,9 +227,13 @@ public class NovelSpider {
         return text;
     }
 
-    //获取章节标题和编码
+    /**
+     * 获取章节标题和编码
+     *
+     * @return
+     */
     public Map<String, String> getConfig() {
-        Map<String, String> conf = new HashMap<>();
+        Map<String, String> conf = new HashMap<>(2);
         conf.put("charset", defCharset);
         conf.put("title", novelTitle);
         return conf;
@@ -209,18 +250,27 @@ public class NovelSpider {
     private String getDelHtml(String header, String tail, String src) {
         int end = tail != null && tail.length() > 1 ? src.indexOf(tail) : src.length();
         int st = header != null && header.length() > 1 ? src.indexOf(header) : 0;
-        if (st == -1)
+        if (st == -1) {
             st = 0;
-        if (end == -1)
+        }
+        if (end == -1) {
             end = src.length();
-        if (st != 0)
+        }
+        if (st != 0) {
             st -= 5;
-        if (end != src.length())
+        }
+        if (end != src.length()) {
             end += 5;
+        }
         return src.substring(st, end);
     }
 
-    //抓小说图片
+    /**
+     * 抓小说图片
+     *
+     * @param name
+     * @return
+     */
     public String crawlDescImage(String name) {
         try {
             name = URLEncoder.encode(name, "UTF-8");
@@ -244,14 +294,20 @@ public class NovelSpider {
         return conf;
     }
 
-    //获取网页源码
+    /**
+     * 获取网页源码
+     *
+     * @param url
+     * @param charset
+     * @return
+     */
     private String getHtml(String url, String charset) {
-        if (conf.isStartDynamic()) {//动态网页
-            Map<String, String> ua = new HashMap<>();
-            ua.put("User-Agent", conf.getUserAgent());
-            return HtmlUnitUtil.doRequest(url, conf.getCookies(), ua).asXml();
-        } else {//静态网页
-            return HtmlUtil.getHtml(url, charset, conf.getCookies(), conf.getUserAgent());//根据cookies和浏览器标识设置
+        //动态网页
+        if (conf.isStartDynamic()) {
+            return HtmlUnitUtil.doRequest(url, conf.getCookies(), null).asXml();
+        } else {
+            //静态网页,根据cookies和浏览器标识设置
+            return HtmlUtil.getHtml(url, charset, conf.getCookies(), conf.getUserAgent());
         }
     }
 }

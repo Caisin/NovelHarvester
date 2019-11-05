@@ -1,4 +1,4 @@
-package com.unclezs.UI.Node;
+package com.unclezs.ui.node;
 
 import com.jfoenix.controls.JFXProgressBar;
 import javafx.beans.property.StringProperty;
@@ -7,7 +7,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 
 /*
  *@author unclezs.com

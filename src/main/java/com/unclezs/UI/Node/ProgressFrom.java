@@ -1,21 +1,16 @@
-package com.unclezs.UI.Node;
+package com.unclezs.ui.node;
 
-import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.UI.Utils.ToastUtil;
+import com.unclezs.ui.utils.DataManager;
+import com.unclezs.ui.utils.ToastUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.Background;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;

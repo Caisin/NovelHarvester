@@ -1,9 +1,9 @@
-package com.unclezs.UI.Utils;
+package com.unclezs.ui.utils;
 
-import com.unclezs.Crawl.LocalNovelLoader;
-import com.unclezs.Crawl.WebNovelLoader;
-import com.unclezs.Model.Book;
-import com.unclezs.Model.ReaderConfig;
+import com.unclezs.crawl.LocalNovelLoader;
+import com.unclezs.crawl.WebNovelLoader;
+import com.unclezs.model.Book;
+import com.unclezs.model.ReaderConfig;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;

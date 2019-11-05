@@ -1,9 +1,6 @@
-package com.unclezs.Mapper;
+package com.unclezs.mapper;
 
-import com.unclezs.Model.AnalysisConfig;
-import com.unclezs.Model.Book;
-import com.unclezs.Model.Chapter;
-import com.unclezs.Model.DownloadHistory;
+import com.unclezs.model.Book;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;

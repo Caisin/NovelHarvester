@@ -1,4 +1,4 @@
-package com.unclezs.Adapter;
+package com.unclezs.adapter;
 
 /*
  *下载是配器

@@ -1,23 +1,26 @@
-package com.unclezs.UI.Controller;
+package com.unclezs.ui.controller;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.http.HttpUtil;
 import com.jfoenix.controls.*;
-import com.unclezs.Crawl.NovelSpider;
-import com.unclezs.Downloader.NovelDownloader;
-import com.unclezs.Mapper.AnalysisMapper;
-import com.unclezs.Mapper.ChapterMapper;
-import com.unclezs.Mapper.NovelMapper;
-import com.unclezs.Mapper.SettingMapper;
-import com.unclezs.Model.AnalysisConfig;
-import com.unclezs.Model.Book;
-import com.unclezs.Model.Chapter;
-import com.unclezs.Model.DownloadConfig;
-import com.unclezs.UI.Node.ProgressFrom;
-import com.unclezs.UI.Utils.DataManager;
-import com.unclezs.UI.Utils.LayoutUitl;
-import com.unclezs.UI.Utils.ToastUtil;
-import com.unclezs.Utils.ConfUtil;
-import com.unclezs.Utils.FileUtil;
-import com.unclezs.Utils.MybatisUtil;
+import com.unclezs.crawl.NovelSpider;
+import com.unclezs.downloader.NovelDownloader;
+import com.unclezs.mapper.AnalysisMapper;
+import com.unclezs.mapper.ChapterMapper;
+import com.unclezs.mapper.NovelMapper;
+import com.unclezs.mapper.SettingMapper;
+import com.unclezs.model.AnalysisConfig;
+import com.unclezs.model.Book;
+import com.unclezs.model.Chapter;
+import com.unclezs.model.DownloadConfig;
+import com.unclezs.ui.node.ProgressFrom;
+import com.unclezs.ui.utils.DataManager;
+import com.unclezs.ui.utils.LayoutUitl;
+import com.unclezs.ui.utils.ToastUtil;
+import com.unclezs.utils.ConfUtil;
+import com.unclezs.utils.OsUtil;
+import com.unclezs.utils.MybatisUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -263,9 +266,10 @@ public class AnalysisController implements Initializable {
                 String homeUrl = text.getText();
                 //封面下载
                 String imgUrl = spider.crawlDescImage(name);
-                String imgPath = FileUtil.uploadFile("./image/" + name + ".jpg", imgUrl);
+                String path = FileUtil.file("./image/" + name + ".jpg").getAbsolutePath();
+                HttpUtil.downloadFile(imgUrl, path);
                 //保存书籍信息
-                Book book = new Book(name, homeUrl, imgPath);
+                Book book = new Book(name, homeUrl, path);
                 book.setCharset(charset);
                 book.setIsWeb(1);//标记为网络书籍
                 SqlSession sqlSession = MybatisUtil.openSqlSession(true);//开启sqlSession
@@ -334,7 +338,7 @@ public class AnalysisController implements Initializable {
     }
 
     //自动导入剪贴班链接
-    void autoImportClibord(boolean isAnalysis) {
+    private void autoImportClibord(boolean isAnalysis) {
         Clipboard cb = Clipboard.getSystemClipboard();
         String url = cb.getString();
         if (url != null && !"".equals(url) && url.startsWith("http")) {
@@ -372,9 +376,7 @@ public class AnalysisController implements Initializable {
         }
         NovelDownloader downloader = new NovelDownloader(taskUrlList, selectedNameItems, config, spider);
         DownloadController.addTask(downloader);
-        new Thread(() -> {
-            downloader.start();
-        }).start();
+        ThreadUtil.execute(downloader::start);
         ToastUtil.toast("添加下载任务成功！");
     }
 
