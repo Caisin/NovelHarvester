@@ -39,6 +39,7 @@ import org.apache.ibatis.session.SqlSession;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
@@ -156,12 +157,12 @@ public class BookSelfController implements Initializable {
                 String path = file.getPath();
                 LocalNovelLoader loader = new LocalNovelLoader(path);
                 String name = loader.getName();
-                String img = spider.crawlDescImage(name);
-                String imgPath= FileUtil.file("./image/" + name + ".jpg").getAbsolutePath();
-                HttpUtil.downloadFile(img,imgPath);
+                InputStream inputStream = getClass().getResourceAsStream("/images/搜索页/没有封面.png");
+                File newFile = FileUtil.newFile("./image/" + name + ".jpg");
+                FileUtil.writeFromStream(inputStream,newFile);
                 //存库
                 NovelMapper novelMapper = MybatisUtil.getMapper(NovelMapper.class);
-                novelMapper.save(new Book(name, path, imgPath));//添加
+                novelMapper.save(new Book(name, path, newFile.getAbsolutePath()));//添加
                 //入架
                 list.add(new BookNode(novelMapper.findLastOne()));
                 //归还sqlsession

@@ -1,5 +1,6 @@
 package com.unclezs.ui.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.http.HttpUtil;
@@ -374,7 +375,12 @@ public class AnalysisController implements Initializable {
                 selectedNameItems.add(chapters.get(i).getChapterName());
             }
         }
-        NovelDownloader downloader = new NovelDownloader(taskUrlList, selectedNameItems, config, spider);
+        //复制Bean，（填坑。。。）
+        AnalysisConfig analysisConfig=new AnalysisConfig();
+        BeanUtil.copyProperties(spider.getConf(),analysisConfig);
+        NovelSpider novelSpider=new NovelSpider(analysisConfig);
+        BeanUtil.copyProperties(spider,novelSpider);
+        NovelDownloader downloader = new NovelDownloader(taskUrlList, selectedNameItems, config, novelSpider);
         DownloadController.addTask(downloader);
         ThreadUtil.execute(downloader::start);
         ToastUtil.toast("添加下载任务成功！");

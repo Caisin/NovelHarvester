@@ -1,6 +1,9 @@
 package com.unclezs.crawl;
 
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.util.EscapeUtil;
 import com.unclezs.utils.OsUtil;
 
 import java.io.BufferedReader;
@@ -21,9 +24,9 @@ import java.util.regex.Pattern;
  */
 public class LocalNovelLoader implements Serializable {
     public static final long serialVersionUID = 123456L;
-    private String regex = "(.*?第[\\s\\S]{1,10}[章卷节].+?)\r\n";
+    private String regex = "([ ]?第[一二三四五六七八九十1234567890 ]{1,10}[章卷节].+?)\r\n";
     private String path;
-    private String content[];
+    private String[] content;
     private String name;
     private boolean isExist = false;//是否存在
     private List<String> chapters = new ArrayList<>();
@@ -31,10 +34,10 @@ public class LocalNovelLoader implements Serializable {
     public LocalNovelLoader(String path) {
         this.path = path;
         this.name = path.substring(path.lastIndexOf('\\') + 1, path.lastIndexOf('.'));
-        initLoad();
+        this.initLoad();
     }
 
-    public void initLoad() {
+    private void initLoad() {
         try {
             getChapters();
             isExist = true;
@@ -68,18 +71,14 @@ public class LocalNovelLoader implements Serializable {
     }
 
     //加载读取文件
-    String loadFile() throws Exception {
+    private String loadFile() throws Exception {
         String encode = OsUtil.codeFile(path);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), encode));
-        String tmp;
-        StringBuffer sb = new StringBuffer();
-        while ((tmp = reader.readLine()) != null) {
-            sb.append(tmp);
-            sb.append("\r\n");
+        if (encode.contains("2312")) {
+            encode = "GBK";
         }
-        reader.close();
-        content = sb.toString().split(regex);
-        return sb.toString();
+        String text = FileUtil.readString(path, encode);
+        content = text.split(regex);
+        return text;
     }
 
     public String getName() {
@@ -94,10 +93,8 @@ public class LocalNovelLoader implements Serializable {
     public Map<String, String> getCPageByIndex(int index) throws Exception {
         Map<String, String> map = new HashMap<>();
         //加载章节
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("\r\n\r\n");//空两行显示题目
-        buffer.append(getContent(index));//正文
-        map.put("content", buffer.toString());
+        String buffer = "\r\n\r\n" + getContent(index);//正文
+        map.put("content", buffer);
         //加载标题
         map.put("title", chapters.get(index));
         return map;

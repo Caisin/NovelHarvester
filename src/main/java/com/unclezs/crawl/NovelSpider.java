@@ -1,6 +1,7 @@
 package com.unclezs.crawl;
 
 
+import cn.hutool.core.util.StrUtil;
 import com.unclezs.model.AnalysisConfig;
 import com.unclezs.model.Chapter;
 import com.unclezs.utils.*;
@@ -275,11 +276,12 @@ public class NovelSpider {
         try {
             name = URLEncoder.encode(name, "UTF-8");
             String html = HtmlUtil.getHtml("https://www.qidian.com/search?kw=" + name, "UTF-8");
-            Document document = Jsoup.parse(html);
-            document.setBaseUri("http:");
-            Element element = document.select(".res-book-item").first();
-            String url = element.select("img").first().absUrl("src");
-            return url;
+            if(StrUtil.isNotEmpty(html)){
+                Document document = Jsoup.parse(html);
+                document.setBaseUri("http:");
+                Element element = document.select(".res-book-item").first();
+                return element.select("img").first().absUrl("src");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -309,5 +311,21 @@ public class NovelSpider {
             //静态网页,根据cookies和浏览器标识设置
             return HtmlUtil.getHtml(url, charset, conf.getCookies(), conf.getUserAgent());
         }
+    }
+
+    public String getDefCharset() {
+        return defCharset;
+    }
+
+    public void setDefCharset(String defCharset) {
+        this.defCharset = defCharset;
+    }
+
+    public String getNovelTitle() {
+        return novelTitle;
+    }
+
+    public void setNovelTitle(String novelTitle) {
+        this.novelTitle = novelTitle;
     }
 }

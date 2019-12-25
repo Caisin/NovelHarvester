@@ -1,5 +1,6 @@
 package com.unclezs.utils;
 
+import cn.hutool.core.util.StrUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -78,13 +79,13 @@ public class HtmlUtil {
                 connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
             }
             //自定义请求头
-            for(String key:headers.keySet()){
-                connection.addRequestProperty(key,headers.get(key));
+            for (String key : headers.keySet()) {
+                connection.addRequestProperty(key, headers.get(key));
             }
             connection.setReadTimeout(10000);
             connection.setConnectTimeout(10000);
             connection.setInstanceFollowRedirects(true);
-            return IOUtils.toString(connection.getInputStream(),charset);
+            return IOUtils.toString(connection.getInputStream(), charset);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("源码抓取失败 " + url);
@@ -130,7 +131,7 @@ public class HtmlUtil {
         } catch (Exception e) {
             System.out.println("源码抓取失败 " + url);
         }
-        return content.trim();
+        return StrUtil.isNotEmpty(content) ? content.trim() : "";
 
     }
 

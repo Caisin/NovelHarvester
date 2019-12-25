@@ -369,6 +369,7 @@ public class AudioNovelSpider {
                     .header("xt", xt)
                     .header("Referer", url)
                     .header("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
+                    .header("user-agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.70 Safari/537.36")
                     .form("bookId",info[0])
                     .form("isPay","0")
                     .form("page",info[1])
