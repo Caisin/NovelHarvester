@@ -38,6 +38,6 @@ public class Main extends Application {
         mainStage.sizeToScene();
         mainStage.show();
         DataManager.currentStage = mainStage;
-        new Thread(()->HotKeyUtil.bindListener()).start();
+        new Thread(HotKeyUtil::bindListener).start();
     }
 }

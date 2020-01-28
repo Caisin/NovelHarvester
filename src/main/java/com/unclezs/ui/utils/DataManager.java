@@ -8,7 +8,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-/*
+/**
  *@author unclezs.com
  *@date 2019.06.21 11:32
  */

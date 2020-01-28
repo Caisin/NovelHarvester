@@ -110,7 +110,7 @@ public class NovelSpider {
             for (Element e : aTags) {
                 String href = e.absUrl("href");
                 //剔除空标签
-                if (!"".equals(href.trim()) && !"".equals(e.text().trim())) {
+                if (StrUtil.isNotBlank(href) && StrUtil.isNotBlank(e.text())&& href.startsWith("http")) {
                     urls.add(href);
                     title.put(href, e.text().trim());
                 }

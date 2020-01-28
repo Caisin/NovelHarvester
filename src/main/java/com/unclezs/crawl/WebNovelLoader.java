@@ -7,22 +7,24 @@ import com.unclezs.utils.MybatisUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- *网络小说加载器
- *@author unclezs.com
- *@date 2019.06.26 20:55
+/**
+ * 网络小说加载器
+ *
+ * @author unclezs.com
+ * @date 2019.06.26 20:55
  */
 public class WebNovelLoader {
     private List<String> chapters;//章节列表
     private List<String> contentUrl;//正文URl
-    private String content[];//正文内容
+    private String[] content;//正文内容
     private String charset;//小说编码
     private Integer aid;//书籍id
     private NovelSpider spider;
-    public WebNovelLoader(Integer aid, String charset,NovelSpider spider) {
+
+    public WebNovelLoader(Integer aid, String charset, NovelSpider spider) {
         this.aid = aid;
         this.charset = charset;
-        this.spider=spider;
+        this.spider = spider;
         initLoad();
     }
 
@@ -36,13 +38,15 @@ public class WebNovelLoader {
             chapters.add(cs.get(i).getChapterName());
             contentUrl.add(cs.get(i).getChapterUrl());
         }
-        content = new String[contentUrl.size()];//初始化缓存正文内容数组
+        //初始化缓存正文内容数组
+        content = new String[contentUrl.size()];
     }
 
     //获取正文内容
     public String getContent(int index) {
         loadOnPage(index);
-        new Thread(() -> cacheContent(index)).start();//开始异步缓存
+        //开始异步缓存
+        new Thread(() -> cacheContent(index)).start();
         return content[index];
     }
 
@@ -58,7 +62,8 @@ public class WebNovelLoader {
 
     //缓存前后5章节
     public void cacheContent(int index) {
-        for (int i = index; i < index + 5 && i < contentUrl.size(); i++) {//缓存后5章节
+        //缓存后5章节
+        for (int i = index; i < index + 5 && i < contentUrl.size(); i++) {
             loadOnPage(i);
         }
         for (int i = index; i > index - 5 && i >= 0; i--) {
@@ -68,14 +73,17 @@ public class WebNovelLoader {
 
     //爬去一章节，并且格式化处理
     public void loadOnPage(int index) {
-        if (content[index] == null) {//已经缓存过不需要加载
+        //已经缓存过不需要加载
+        if (content[index] == null) {
             String content = spider.getContent(contentUrl.get(index), charset);
             //加载章节
-            StringBuffer buffer = new StringBuffer();
-            buffer.append("\r\n\r\n");//空两行显示题目
-            buffer.append(content + "\r\n");
-            buffer.append("本章完\r\n");//末尾显示本章完
-            this.content[index] = buffer.toString();//进入缓存
+            //空两行显示题目
+            //进入缓存
+            String buffer = "\r\n\r\n" +
+                    content + "\r\n" +
+                    //末尾显示本章完
+                    "本章完\r\n";
+            this.content[index] = buffer;
         }
     }
 }

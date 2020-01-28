@@ -9,7 +9,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 
-/*
+/**
  *书架书节点
  *@author unclezs.com
  *@date 2019.06.22 09:54

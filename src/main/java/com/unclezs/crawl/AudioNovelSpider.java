@@ -347,7 +347,7 @@ public class AudioNovelSpider {
                 List<NameValuePair> postData = new ArrayList<>();
                 postData.add(new BasicNameValuePair("url", jmUrl));
                 String resJson = HttpUtil.doPost("http://www.ting56.com/player/tingchina.php", postData);
-                realUrl = JSON.parseObject(resJson).toString().replace("t44", "t33");
+                realUrl = JSON.parseObject(resJson).getString("url").replace("t44", "t33");
                 break;
             default:
                 realUrl = datas[0].replace(":82", "");
@@ -439,12 +439,13 @@ public class AudioNovelSpider {
         int page = (int)Math.ceil(chapterNumber*1.0f / 10);
         int pageIndex = (chapterNumber - 1) % 10;
         //音频地址API
-        String api = "https://www.ting22.com/api.php?c=Json&page=" + page + "&pagesize=10&callback=unclezs&id=" + query[0];
+        String api = "https://www.ting22.com/api.php?c=Json&page=" + page + "&pagesize=10&callback=jQuery&id=" + query[0];
         Map<String, String> headers = new HashMap<>(2);
         headers.put(Config.Referer, url);
         headers.put("sign", System.currentTimeMillis() + "");
         //获取URL加密Code
-        String code = JSON.parseObject(HtmlUtil.getHtmlSource(api, "utf-8", headers).substring(8).replace(");", "")).getJSONArray("playlist").getJSONObject(pageIndex).getString("file");
+        String rjson=HtmlUtil.getHtmlSource(api, "utf-8", headers).replace("jQuery(","").replace(");","");
+        String code = JSON.parseObject(rjson).getJSONArray("playlist").getJSONObject(pageIndex).getString("file");
         //解密
         code = getCodeString(code);
         //根据类型获取真实音频地址

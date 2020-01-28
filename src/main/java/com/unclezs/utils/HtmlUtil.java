@@ -1,6 +1,8 @@
 package com.unclezs.utils;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -95,44 +97,29 @@ public class HtmlUtil {
     }
 
     public static String getHtml(String url, String charset, String cookies, String ua) {
+        HttpRequest request = HttpUtil.createGet(url);
         String content = null;
-        //重试5次
-        HttpRequestRetryHandler retry = new StandardHttpRequestRetryHandler(5, true);
         //请求头
         List<Header> headers = new ArrayList<>();
-        if (cookies != null && !"".equals(cookies))
-            headers.add(new BasicHeader("Cookie", cookies));
-        if (ua != null && !"".equals(ua)) {
-            headers.add(new BasicHeader("User-Agent", ua));
+        if (StrUtil.isNotEmpty(cookies)) {
+            request.cookie(cookies);
+        }
+        if (StrUtil.isNotEmpty(ua)) {
+            request.header("User-Agent", ua);
         } else {
-            headers.add(new BasicHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"));
+            request.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
         }
         //延迟
-        RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(10000)
-                .setConnectionRequestTimeout(10000)
-                .setSocketTimeout(10000)
-                .build();
-//        SystemDefaultRoutePlanner routePlanner = new SystemDefaultRoutePlanner(ProxySelector.getDefault());
-        HttpClientBuilder builder = HttpClients.custom()
-//                .setRoutePlanner(routePlanner)
-                .setDefaultHeaders(headers)
-                .setDefaultRequestConfig(config)
-                .setRetryHandler(retry);
-        ProxyUtil.proxyHttpClient(builder);
-        try (CloseableHttpClient httpClient = builder.build()) {
-            HttpGet get = new HttpGet(url);
-            HttpEntity entity = httpClient.execute(get).getEntity();
-            byte[] bytes = EntityUtils.toByteArray(entity);
-            if (charset.contains("gb")) {
-                charset = "gbk";
-            }
-            content = new String(bytes, charset);
+        request.setConnectionTimeout(10000);
+        ProxyUtil.proxyHttp(request);
+        try{
+            content=request.execute().body();
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("源码抓取失败 " + url);
         }
+        System.out.println(content);
         return StrUtil.isNotEmpty(content) ? content.trim() : "";
-
     }
 
     /**

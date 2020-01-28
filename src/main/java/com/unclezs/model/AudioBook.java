@@ -2,10 +2,11 @@ package com.unclezs.model;
 
 import java.util.List;
 
-/*
- *有声小说实体
- *@author unclezs.com
- *@date 2019.07.07 22:57
+/**
+ * 有声小说实体
+ *
+ * @author unclezs.com
+ * @date 2019.07.07 22:57
  */
 public class AudioBook {
     private String author;//作者
@@ -16,8 +17,9 @@ public class AudioBook {
     private int lastIndex;//上次听到的章节
     private double lastLocation;//上次听到的位置
     private List<AudioChapter> chapters;//章节列表
-    private int id=-1;
+    private int id = -1;
     private String lastChapter;//上次听到的一章节名字
+
     public AudioBook() {
     }
 

@@ -8,13 +8,13 @@ import javafx.util.Duration;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-/*
- *@author unclezs.com
- *@date 2019.07.03 14:07
+/**
+ * @author unclezs.com
+ * @date 2019.07.03 14:07
  */
 public class AlertUtil {
-    public static Alert getAlert(String title,String message){
-        Alert alert=new Alert(Alert.AlertType.INFORMATION);
+    public static Alert getAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.initOwner(DataManager.mainStage);
         alert.initModality(Modality.APPLICATION_MODAL);
         alert.setContentText(message);
@@ -25,7 +25,7 @@ public class AlertUtil {
     }
 
     //设置时间
-    public static Tooltip setTipTime(Tooltip tooltip){
+    public static Tooltip setTipTime(Tooltip tooltip) {
         try {
             Class tipClass = tooltip.getClass();
             Field f = tipClass.getDeclaredField("BEHAVIOR");

@@ -1,5 +1,7 @@
 package com.unclezs.utils;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpRequest;
 import com.gargoylesoftware.htmlunit.WebRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -12,6 +14,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 
 /**
  * 代理工具
@@ -20,13 +24,15 @@ import java.io.IOException;
  */
 public class ProxyUtil {
     public static void proxyHttpClient(HttpClientBuilder builder) {
-        if (ConfUtil.get(ConfUtil.PROXY_PORT) != null && !"".equals(ConfUtil.get(ConfUtil.PROXY_PORT))
-                && ConfUtil.get(ConfUtil.PROXY_HOSTNAME) != null && !"".equals(ConfUtil.get(ConfUtil.PROXY_HOSTNAME))) {
-            builder.setProxy(new HttpHost(
-                    ConfUtil.get(ConfUtil.PROXY_HOSTNAME), Integer.parseInt(ConfUtil.get(ConfUtil.PROXY_PORT))));
+        if (StrUtil.isNotEmpty(ConfUtil.get(ConfUtil.PROXY_PORT)) && StrUtil.isNotEmpty(ConfUtil.get(ConfUtil.PROXY_HOSTNAME))) {
+            builder.setProxy(new HttpHost(ConfUtil.get(ConfUtil.PROXY_HOSTNAME), Integer.parseInt(ConfUtil.get(ConfUtil.PROXY_PORT))));
         }
     }
-
+    public static void proxyHttp(HttpRequest request) {
+        if (StrUtil.isNotEmpty(ConfUtil.get(ConfUtil.PROXY_PORT)) && StrUtil.isNotEmpty(ConfUtil.get(ConfUtil.PROXY_HOSTNAME))) {
+            request.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ConfUtil.get(ConfUtil.PROXY_HOSTNAME), Integer.parseInt(ConfUtil.get(ConfUtil.PROXY_PORT)))));
+        }
+    }
     public static void proxyConnection() {
         if (ConfUtil.get(ConfUtil.PROXY_PORT) != null && !"".equals(ConfUtil.get(ConfUtil.PROXY_PORT))
                 && ConfUtil.get(ConfUtil.PROXY_HOSTNAME) != null && !"".equals(ConfUtil.get(ConfUtil.PROXY_HOSTNAME))) {

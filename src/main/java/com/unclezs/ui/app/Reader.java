@@ -1,8 +1,4 @@
 package com.unclezs.ui.app;
-/*
- *@author unclezs.com
- *@date 2019.06.22 14:48
- */
 
 import com.unclezs.ui.utils.DataManager;
 import javafx.application.Application;
@@ -17,7 +13,10 @@ import javafx.stage.StageStyle;
 
 import java.io.IOException;
 
-
+/**
+ *@author unclezs.com
+ *@date 2019.06.22 14:48
+ */
 public class Reader extends Application {
     public StageStyle stageStyle = StageStyle.DECORATED;
     private boolean isFullScreen;//全屏

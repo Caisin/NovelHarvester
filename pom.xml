@@ -147,9 +147,6 @@
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
-                        <configuration>
-
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

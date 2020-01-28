@@ -59,7 +59,7 @@ public class SettingController implements Initializable {
     }
 
     //初始化数据
-    void initData() {
+    private void initData() {
         for (int i = 0; i < 30; i++) {
             delay.getItems().add(i);
         }

@@ -33,12 +33,14 @@ public class HtmlUnitUtil {
             webClient.setAjaxController(new NicelyResynchronizingAjaxController());//很重要，设置支持AJAX
             setCookies(webClient, cookiesStr);
             setHeaders(webClient, headers);
+            webClient.getOptions().setUseInsecureSSL(true);
             WebRequest request=new WebRequest(new URL(url));
             ProxyUtil.proxyHtmlUnit(request);
             final HtmlPage page = webClient.getPage(request);
             webClient.waitForBackgroundJavaScript(8000);//异步JS执行需要耗时,所以这里线程要阻塞30秒,等待异步JS执行结束
             return page;
         } catch (Exception e){
+            e.printStackTrace();
             System.out.println("动态网页抓取失败"+url);
         }
         return null;

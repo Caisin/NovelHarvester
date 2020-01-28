@@ -36,7 +36,7 @@ public class SettingMenuController implements Initializable {
     }
 
     //图标初始化
-    void initIcon() {
+    private void initIcon() {
         github.setGraphic(new ImageView("images/设置页/github.jpg"));
         setting.setGraphic(new ImageView("images/设置页/头设置.jpg"));
         safe.setGraphic(new ImageView("images/设置页/免责.jpg"));
@@ -48,7 +48,7 @@ public class SettingMenuController implements Initializable {
     }
 
     //事件初始化
-    void initEventHandler() {
+    private void initEventHandler() {
         //git源码
         github.setOnMouseClicked(e -> {
             try {
@@ -114,7 +114,7 @@ public class SettingMenuController implements Initializable {
     }
 
     //改变菜单鼠标移入移出背景色
-    void changeBackColor(Label... label) {
+    private void changeBackColor(Label... label) {
         for (Label l : label) {
             l.setOnMouseMoved(e -> {
                 l.setStyle("-fx-background-color: rgb(189,189,189)");
